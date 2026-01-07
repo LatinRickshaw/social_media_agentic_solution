@@ -20,16 +20,19 @@ Performs deep technical investigation before starting implementation. Use this f
 
 ## What It Does
 
-This skill performs comprehensive technical investigation and posts findings to Jira WITHOUT transitioning the ticket. Use this BEFORE running `/start-task` for complex work.
+This skill performs comprehensive technical investigation and posts findings to Jira WITHOUT transitioning the ticket. Use this BEFORE running `/02-start-task` for complex work.
 
 ### 1. Fetch Ticket Details
-- Retrieves Jira ticket with full description
-- Reads all acceptance criteria
+
+- Retrieves Jira ticket with full description using Atlassian MCP server
+- Reads all acceptance criteria from the Jira ticket
 - Understands scope and requirements
 - Identifies deliverables
 
 ### 2. Codebase Analysis
+
 Searches the codebase for:
+
 - **Existing implementations** of similar features
 - **Deprecated dependencies** that need upgrading
 - **Architectural patterns** to follow
@@ -38,7 +41,9 @@ Searches the codebase for:
 - **Configuration requirements** (env vars, API keys, etc.)
 
 ### 3. Technical Assessment
+
 Evaluates:
+
 - **Complexity level** (simple, moderate, complex)
 - **Technology decisions needed**:
   - Which APIs or libraries to use
@@ -54,20 +59,24 @@ Evaluates:
   - Security considerations
 
 ### 4. Scope Clarification
+
 Determines:
-- What's explicitly in scope (from ticket)
+
+- What's explicitly in scope (from the Jira ticket)
 - What's implicitly in scope (technical requirements)
 - What's out of scope (YAGNI)
 - Edge cases to handle
 - Edge cases to defer
 
 ### 5. Investigation Report
-Generates and posts to Jira:
+
+Generates and posts to Jira using the Atlassian MCP server:
 
 ```markdown
 ## 🔍 Technical Investigation Complete
 
 ### Ticket Summary
+
 - **What**: [Brief summary of requirement]
 - **Why**: [Business value or problem being solved]
 - **Acceptance Criteria**: [List key criteria]
@@ -75,16 +84,20 @@ Generates and posts to Jira:
 ### Technical Findings
 
 #### Existing Code Analysis
+
 - Found similar implementation in [file]:line
 - Current pattern uses [technology/approach]
-- [X] files will likely need modification
+- [x] files will likely need modification
 
 #### Deprecated Dependencies
+
 - ⚠️ [Library X] is deprecated, upgrade to [Library Y] recommended
 - ⚠️ [Pattern A] no longer follows project standards
 
 #### Architectural Decisions Needed
+
 1. **Decision**: [What needs to be decided]
+
    - Option A: [Pros/Cons]
    - Option B: [Pros/Cons]
    - Recommendation: [X because Y]
@@ -93,12 +106,14 @@ Generates and posts to Jira:
    - [Similar format]
 
 #### Dependencies & Requirements
+
 - Environment variables: [LIST]
 - External APIs: [LIST]
 - New libraries needed: [LIST]
 - Configuration changes: [LIST]
 
 ### Complexity Assessment
+
 - **Level**: [Simple/Moderate/Complex]
 - **Estimated effort**: [S/M/L/XL]
 - **Risk factors**:
@@ -107,39 +122,47 @@ Generates and posts to Jira:
 ### Scope Clarification
 
 #### In Scope (Confirmed)
+
 - [Task A from ticket]
 - [Task B from ticket]
 - [Technical requirement C]
 
 #### Out of Scope (YAGNI)
+
 - [Feature X not in ticket]
 - [Premature optimization Y]
 
 #### Edge Cases
+
 - To Handle: [List cases to implement]
 - To Defer: [List cases for future tickets]
 
 ### Recommendations
+
 1. [Recommendation 1]
 2. [Recommendation 2]
 3. [Recommendation 3]
 
 ### Proposed Approach
+
 [High-level implementation strategy]
 
 ---
+
 Investigation complete. Review findings before running `/start-task [JIRA-KEY]`.
 ```
 
 ### 6. Wait for Review
+
 - **Does NOT transition ticket**
 - **Does NOT start implementation**
 - Waits for user/team to review findings
-- User can then proceed with `/start-task` when ready
+- User can then proceed with `/02-start-task` when ready
 
 ## When to Use This Skill
 
 ### Use for Complex Tasks
+
 - Tasks involving deprecated code
 - Tasks requiring architectural decisions
 - Tasks with unclear technical requirements
@@ -148,6 +171,7 @@ Investigation complete. Review findings before running `/start-task [JIRA-KEY]`.
 - Large features (L/XL size estimates)
 
 ### Skip for Simple Tasks
+
 - Bug fixes with known solution
 - Simple UI changes
 - Documentation updates
@@ -162,28 +186,30 @@ Investigation complete. Review findings before running `/start-task [JIRA-KEY]`.
 
 ## Arguments
 
-| Argument | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `jira_key` | Yes | The Jira issue key to investigate | `SOC-15` |
+| Argument   | Required | Description                       | Example  |
+| ---------- | -------- | --------------------------------- | -------- |
+| `jira_key` | Yes      | The Jira issue key to investigate | `SOC-15` |
 
 ## Workflow Integration
 
 Typical workflow for complex tasks:
 
 ```
-1. /investigate-task SOC-15          # Deep investigation
+1. /01-investigate-task SOC-15          # Deep investigation
 2. Review investigation report
 3. Discuss architectural decisions
-4. /start-task SOC-15                # Begin work
-5. /dev-execute "Feature" SOC-15     # Implement
-6. /complete-task SOC-15 "Done"      # Finish
+4. /02-start-task SOC-15                # Begin work
+5. /03-dev-execute "Feature" SOC-15     # Implement
+6. /04-reconcile-work                   # Reconciles the work
+7. /05-complete-task SOC-15 "Done"      # Finish
 ```
 
 For simple tasks:
+
 ```
-1. /start-task SOC-16                # Skip investigation
-2. /dev-execute "Simple fix" SOC-16
-3. /complete-task SOC-16 "Done"
+1. /02-start-task SOC-16                # Skip investigation
+2. /03-dev-execute "Simple fix" SOC-16
+3. /05-complete-task SOC-16 "Done"
 ```
 
 ## Benefits
@@ -198,6 +224,7 @@ For simple tasks:
 ## Error Handling
 
 The skill will:
+
 - Report if Jira ticket doesn't exist
 - Continue if some code searches return no results
 - Note when architectural decisions are unclear
@@ -216,6 +243,7 @@ The skill will:
 ## Example Output
 
 See the investigation report format above. A real example would include:
+
 - Specific file paths and line numbers
 - Actual code patterns found
 - Concrete technology recommendations
