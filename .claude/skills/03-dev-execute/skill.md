@@ -59,6 +59,35 @@ This skill guides you through disciplined software development by:
 - What integration points need testing?
 - What edge cases must be covered?
 
+**1.5 Architectural Decision Recording**
+- Identify significant architectural decisions needed
+- For each major decision, document:
+  - Context: Why this decision is needed
+  - Decision: What was chosen
+  - Alternatives: Other options considered
+  - Rationale: Why this choice over alternatives
+- Create decision record as code comment in affected files
+- Format:
+  ```python
+  """
+  ARCHITECTURAL DECISION: [Short Title]
+
+  Context: [Why this decision was needed]
+  Decision: [What was chosen]
+  Alternatives: [Other options considered]
+  Rationale: [Why this choice over alternatives]
+  Date: YYYY-MM-DD
+  Ticket: [Jira key if applicable]
+  """
+  ```
+- Place at top of files with significant architectural choices
+- Examples of significant decisions:
+  - Choosing between libraries/frameworks
+  - Selecting architectural patterns
+  - Retry/fallback strategies
+  - Performance vs simplicity tradeoffs
+  - Migration from deprecated dependencies
+
 ### Phase 2: Implementation (Writing the code)
 
 **2.1 Create Implementation Plan**
@@ -72,7 +101,21 @@ Generate a step-by-step implementation plan:
 6. Keep classes/functions focused and small
 ```
 
-**2.2 Write Code Following Principles**
+**2.2 Scope Tracking (Silent)**
+- Track any scope changes made during implementation
+- Do NOT block or prompt user during development
+- Store the following for completion report:
+  - **Within Ticket Scope**: Tasks completed as specified
+  - **Beyond Ticket Scope**: Features/enhancements added and why
+  - **Deferred from Ticket**: Tasks postponed and why
+- Examples of scope additions to track:
+  - CLI expanded from "basic" to full featured
+  - Added fallback/placeholder systems
+  - Additional error handling beyond requirements
+  - Performance optimizations not requested
+  - Extra validation or security measures
+
+**2.3 Write Code Following Principles**
 
 For each file created/modified:
 
@@ -104,11 +147,20 @@ For each file created/modified:
 - Security considerations (input validation, no injection risks)
 - Resource cleanup (context managers, try/finally)
 
-**2.3 Write Tests**
+**2.4 Write Tests**
 - Unit tests for each new function/class
 - Integration tests for component interactions
 - Edge case coverage
 - Mock external dependencies
+
+**2.5 Milestone Update: Core Implementation**
+Post concise Jira comment when core implementation complete:
+```markdown
+## Milestone: Core Implementation Complete
+- X files created, Y files modified
+- Z classes/functions added
+- Next: Writing tests
+```
 
 ### Phase 3: Verification (Ensuring quality)
 
@@ -135,6 +187,16 @@ For each file created/modified:
 - Are existing patterns followed?
 - Is the codebase more maintainable than before?
 
+**3.4 Milestone Update: Tests Passing**
+Post concise Jira comment when tests complete:
+```markdown
+## Milestone: All Tests Passing
+- X tests written
+- Y% coverage achieved
+- Z edge cases covered
+- Next: Documentation and final review
+```
+
 ### Phase 4: Documentation & Completion
 
 **4.1 Update Documentation**
@@ -143,10 +205,29 @@ For each file created/modified:
 - Document any new patterns or decisions
 - Add examples if introducing new interfaces
 
-**4.2 Final Commit**
+**4.2 Prepare Scope Report**
+- Review tracked scope changes from Phase 2
+- Format for `/complete-task` to include in Jira comment:
+  ```markdown
+  ## 📊 Scope Changes
+  ✅ Within Ticket Scope:
+  - Task A: Completed as specified
+  - Task B: Completed with minor enhancement
+
+  ⚠️ Beyond Ticket Scope (Added):
+  - Feature X: [Brief rationale]
+  - Enhancement Y: [Brief rationale]
+
+  🚫 Deferred from Ticket:
+  - Task Z: [Reason for deferral]
+  ```
+- If no scope changes: Note "No scope changes - implemented exactly as specified"
+
+**4.3 Final Commit**
 - Prepare commit with clear message
 - Link to Jira ticket if provided
 - Include summary of changes and principles applied
+- Note number of architectural decisions documented
 
 ## Output Format
 
@@ -219,6 +300,13 @@ Principles applied: [...]
 - KISS: [how simplicity was maintained]
 - DRY: [what was reused/extracted]
 - Security: [considerations addressed]
+
+### Architectural Decisions
+- N decisions documented in code comments
+- Files with decision records: [list]
+
+### Scope Summary
+[Tracked scope changes from Phase 2.2]
 
 ### Commit Message
 [Generated commit message]

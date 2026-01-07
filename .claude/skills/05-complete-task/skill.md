@@ -31,7 +31,12 @@ Automates the complete workflow for finishing a development task:
 
 ### 2. Jira Update
 - Fetches the current Jira issue details
-- Adds a comment with the work summary and file changes
+- Adds a comprehensive comment with:
+  - Work summary and file changes
+  - Scope changes (if any) with rationales
+  - Follow-up work identified
+  - Known limitations
+  - Metrics (LOC, test coverage, architectural decisions)
 - Determines the appropriate transition (e.g., "In Progress" → "Done")
 - Transitions the ticket accordingly
 
@@ -84,9 +89,67 @@ The skill will:
 - Report if git push fails
 - Provide clear error messages at each step
 
+## Enhanced Jira Comment Format
+
+The skill creates a comprehensive Jira comment with the following sections:
+
+```markdown
+## ✅ Completion Summary
+[High-level summary of work completed]
+
+### What Was Delivered
+- [Key deliverable 1]
+- [Key deliverable 2]
+- [Key deliverable 3]
+
+### Technical Implementation
+[Brief description of approach]
+
+## 📊 Scope Changes
+[This section is optional - only included if there were scope changes]
+
+✅ **Within Ticket Scope:**
+- Task A: Completed as specified
+- Task B: Completed with minor enhancement
+
+⚠️ **Beyond Ticket Scope (Added):**
+- Feature X: Brief rationale for addition
+- Enhancement Y: Brief rationale for addition
+
+🚫 **Deferred from Ticket:**
+- Task Z: Reason for deferral
+
+[If no scope changes]: "No scope changes - implemented exactly as specified in ticket."
+
+## 🔄 Follow-up Work Identified
+[Optional - only if follow-up work was discovered]
+
+- [Item 1]: Suggested future ticket
+- [Item 2]: Suggested future ticket
+
+## ⚠️ Known Limitations
+[Optional - only if there are known limitations]
+
+- [Limitation 1]: Description
+- [Limitation 2]: Description
+
+## 📈 Metrics
+- Lines of code: +XXX / -YYY
+- Test coverage: XX tests, YY% coverage
+- Files changed: N files created, M files modified
+- Architectural decisions: N documented in code
+- [Other relevant metrics]
+
+## Files Changed
+- file1.py: [Brief description]
+- file2.py: [Brief description]
+```
+
 ## Notes
 
 - Always review changes with `git status` and `git diff` before running
 - The skill adds a co-authored-by line for Claude in commits
-- Jira comments include file change summaries for traceability
+- Jira comments include comprehensive completion details for traceability
+- Scope changes are highlighted with clear rationales
 - The commit message includes a link back to the Jira ticket
+- Architectural decisions are counted and referenced
