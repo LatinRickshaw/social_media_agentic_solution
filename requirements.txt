@@ -1,7 +1,6 @@
 # Core
-langchain==0.1.0
-openai==1.0.0
-google-generativeai==0.3.0
+openai>=1.55.0
+google-generativeai>=0.8.0
 
 # Database
 psycopg2-binary==2.9.9
