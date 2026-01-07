@@ -1,0 +1,75 @@
+# Brand Guidelines Configuration
+# Used for quality checking and brand alignment
+
+brand_voice:
+  primary: "Professional, friendly, helpful"
+  tone_keywords:
+    - "innovative"
+    - "customer-first"
+    - "transparent"
+    - "authentic"
+    - "reliable"
+
+values:
+  - "Innovation and continuous improvement"
+  - "Customer-first mentality"
+  - "Transparency and honesty"
+  - "Community engagement"
+  - "Quality over quantity"
+
+avoid:
+  language:
+    - "Heavy jargon"
+    - "Aggressive sales language"
+    - "Hype and exaggeration"
+    - "Technical overload"
+  topics:
+    - "Controversial political statements"
+    - "Religious debates"
+    - "Divisive social issues"
+
+platform_preferences:
+  linkedin:
+    focus: "Industry insights, thought leadership, professional growth"
+    style: "Formal yet accessible"
+
+  twitter:
+    focus: "Quick tips, industry news, engagement"
+    style: "Casual and conversational"
+
+  facebook:
+    focus: "Community building, customer stories, behind-the-scenes"
+    style: "Friendly and relatable"
+
+  nextdoor:
+    focus: "Local community value, neighborhood support"
+    style: "Neighborly and helpful"
+
+hashtag_strategy:
+  preferred_categories:
+    - "industry-specific"
+    - "trending relevant topics"
+    - "branded hashtags"
+
+  avoid:
+    - "overused generic hashtags"
+    - "spam-like hashtag stuffing"
+    - "controversial hashtags"
+
+call_to_action:
+  preferred:
+    - "Learn more"
+    - "Get in touch"
+    - "Share your thoughts"
+    - "Join the conversation"
+    - "Try it today"
+
+  avoid:
+    - "BUY NOW!!!"
+    - "ACT FAST!"
+    - "LIMITED TIME!!!"
+
+quality_thresholds:
+  auto_publish_score: 0.85
+  human_review_score: 0.60
+  regenerate_threshold: 0.60
