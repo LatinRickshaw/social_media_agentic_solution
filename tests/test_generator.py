@@ -22,15 +22,19 @@ def generator():
         patch("src.core.config.Config.OPENAI_API_KEY", "test-openai-key"),
         patch("src.core.config.Config.GOOGLE_API_KEY", "test-google-key"),
         patch("src.core.generator.OpenAI") as mock_openai,
-        patch("src.core.generator.genai.configure"),
-        patch("src.core.generator.genai.GenerativeModel"),
+        patch("src.core.generator.genai.Client") as mock_genai_client,
     ):
         # Mock the OpenAI client
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
 
+        # Mock the Gemini client
+        mock_gemini = MagicMock()
+        mock_genai_client.return_value = mock_gemini
+
         gen = SocialMediaGenerator()
         gen.openai_client = mock_client
+        gen.genai_client = mock_gemini
         return gen
 
 
@@ -44,8 +48,7 @@ def test_generator_initialization():
         patch("src.core.config.Config.OPENAI_API_KEY", "test-key"),
         patch("src.core.config.Config.GOOGLE_API_KEY", "test-key"),
         patch("src.core.generator.OpenAI") as mock_openai,
-        patch("src.core.generator.genai.configure") as mock_genai_config,
-        patch("src.core.generator.genai.GenerativeModel"),
+        patch("src.core.generator.genai.Client") as mock_genai_client,
     ):
 
         generator = SocialMediaGenerator()
@@ -54,7 +57,7 @@ def test_generator_initialization():
         assert generator.platform_specs == PLATFORM_SPECS
         assert generator.templates is not None
         mock_openai.assert_called_once()
-        mock_genai_config.assert_called_once()
+        mock_genai_client.assert_called_once()
 
 
 def test_generator_initialization_missing_api_keys():
