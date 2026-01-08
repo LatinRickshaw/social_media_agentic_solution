@@ -1,6 +1,28 @@
 """
 Core generator class for social media content and image generation.
 Uses GPT-4 for content and Gemini for images.
+
+ARCHITECTURAL DECISION: Migration from google-generativeai to google-genai
+
+Context: The google-generativeai package (v0.8.0+) was officially deprecated and archived
+by Google on November 30, 2025. All support, including security patches and bug fixes, has
+ended. Google released the unified google-genai SDK to support Gemini 2.0 and future models.
+
+Decision: Migrate to google-genai package (>=0.2.0) using the new client-based API.
+
+Alternatives:
+1. Continue with deprecated package - rejected due to security and support risks
+2. Switch to Vertex AI SDK - rejected as it requires GCP and is more complex for our use case
+3. Find alternative image generation service - rejected to maintain consistency
+
+Rationale:
+- google-genai is the official successor with active support
+- Client-based architecture aligns with our existing OpenAI client pattern
+- Maintains same functionality while ensuring future compatibility
+- Unified SDK provides better type safety and clearer API design
+
+Date: 2026-01-08
+Ticket: SOC-14
 """
 
 from datetime import datetime
@@ -11,7 +33,7 @@ import logging
 from functools import wraps
 
 from openai import OpenAI
-import google.generativeai as genai
+from google import genai
 from PIL import Image
 import io
 
@@ -97,9 +119,8 @@ class SocialMediaGenerator:
         self.model = Config.OPENAI_MODEL
         self.temperature = Config.OPENAI_TEMPERATURE
 
-        # Initialize Gemini for image generation
-        genai.configure(api_key=Config.GOOGLE_API_KEY)
-        self.image_model = genai.GenerativeModel("gemini-1.5-pro")
+        # Initialize Gemini client for image generation (new API)
+        self.genai_client: genai.Client = genai.Client(api_key=Config.GOOGLE_API_KEY)
 
         # Load platform specifications
         self.platform_specs = PLATFORM_SPECS
@@ -338,9 +359,8 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
         logger.info(f"Generating image for {platform} ({width}x{height})")
 
         try:
-            # Generate image using Gemini's imagen-3.0-generate-001 model
-            # Note: As of 2025, Gemini API supports text-to-image via generateContent
-            imagen_model = genai.GenerativeModel("imagen-3.0-generate-001")
+            # Generate image using Gemini's imagen-3.0-generate-001 model via new client API
+            # Note: As of 2026, using google-genai SDK with client-based approach
 
             # Enhance prompt with size requirements
             enhanced_prompt = (
@@ -349,9 +369,10 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
                 f"high quality, professional, suitable for {platform} social media."
             )
 
-            response = imagen_model.generate_content(
-                enhanced_prompt,
-                generation_config=genai.GenerationConfig(
+            response = self.genai_client.models.generate_content(
+                model="imagen-3.0-generate-001",
+                contents=enhanced_prompt,
+                config=genai.types.GenerateContentConfig(
                     temperature=0.4,  # Lower temperature for more consistent images
                 ),
             )
