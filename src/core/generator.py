@@ -17,6 +17,7 @@ import io
 
 from .config import Config, PLATFORM_SPECS
 from .prompt_templates import PLATFORM_TEMPLATES, IMAGE_PROMPT_TEMPLATE
+from .brand_voice import BrandVoice
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -78,8 +79,13 @@ class SocialMediaGenerator:
     using GPT-4 and Gemini respectively.
     """
 
-    def __init__(self):
-        """Initialize the generator with API connections"""
+    def __init__(self, brand_guidelines_path: Optional[str] = None):
+        """
+        Initialize the generator with API connections.
+
+        Args:
+            brand_guidelines_path: Optional path to brand guidelines YAML file
+        """
         # Validate configuration
         if not Config.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY not configured")
@@ -99,6 +105,9 @@ class SocialMediaGenerator:
         self.platform_specs = PLATFORM_SPECS
         self.templates = PLATFORM_TEMPLATES
 
+        # Initialize brand voice manager
+        self.brand_voice = BrandVoice(brand_guidelines_path)
+
         logger.info("SocialMediaGenerator initialized successfully")
 
     def generate_post(
@@ -106,7 +115,8 @@ class SocialMediaGenerator:
         user_prompt: str,
         platform: str,
         context: str = "",
-        brand_voice: str = "professional and engaging",
+        brand_voice: Optional[str] = None,
+        include_hashtags: bool = True,
     ) -> Dict:
         """
         Generate a complete social media post for a specific platform.
@@ -115,30 +125,46 @@ class SocialMediaGenerator:
             user_prompt: The main topic/idea from the user
             platform: Target platform (linkedin, twitter, facebook, nextdoor)
             context: Additional context or requirements
-            brand_voice: Desired brand voice/tone
+            brand_voice: Desired brand voice/tone (uses brand guidelines if None)
+            include_hashtags: Whether to generate and include hashtags
 
         Returns:
             Dict containing:
                 - content: Generated text content
+                - hashtags: List of generated hashtags
                 - image_path: Path to generated image
                 - image_prompt: Prompt used for image generation
-                - metadata: Platform specs, character count, etc.
+                - metadata: Platform specs, character count, brand voice used, etc.
         """
         if platform not in self.platform_specs:
             raise ValueError(f"Unsupported platform: {platform}")
 
+        # Use brand guidelines if brand_voice not specified
+        if brand_voice is None:
+            brand_voice = self.brand_voice.get_brand_voice(platform)
+            logger.info(f"Using brand voice from guidelines: {brand_voice}")
+
         # 1. Generate platform-optimized content
         content = self._generate_content(user_prompt, platform, context, brand_voice)
 
-        # 2. Extract/generate image description from content
+        # 2. Generate hashtags if requested
+        hashtags = []
+        if include_hashtags:
+            hashtags = self._generate_hashtags(content, platform, user_prompt)
+            # Append hashtags to content
+            hashtag_str = self.brand_voice.format_hashtags(hashtags)
+            content = f"{content}\n\n{hashtag_str}"
+
+        # 3. Extract/generate image description from content
         image_prompt = self._create_image_prompt(content, platform, user_prompt)
 
-        # 3. Generate image with Gemini
+        # 4. Generate image with Gemini
         image_path = self._generate_image(image_prompt, platform)
 
-        # 4. Package the result
+        # 5. Package the result
         post_data = {
             "content": content,
+            "hashtags": hashtags,
             "image_path": image_path,
             "image_prompt": image_prompt,
             "platform": platform,
@@ -146,6 +172,7 @@ class SocialMediaGenerator:
                 "char_count": len(content),
                 "char_limit": self.platform_specs[platform]["char_limit"],
                 "image_size": self.platform_specs[platform]["image_size"],
+                "brand_voice": brand_voice,
                 "timestamp": datetime.now().isoformat(),
             },
         }
@@ -153,10 +180,20 @@ class SocialMediaGenerator:
         return post_data
 
     def generate_all_platforms(
-        self, user_prompt: str, context: str = "", brand_voice: str = "professional and engaging"
+        self,
+        user_prompt: str,
+        context: str = "",
+        brand_voice: Optional[str] = None,
+        include_hashtags: bool = True,
     ) -> Dict[str, Optional[Dict]]:
         """
         Generate posts for all platforms simultaneously.
+
+        Args:
+            user_prompt: The main topic/idea from the user
+            context: Additional context or requirements
+            brand_voice: Desired brand voice/tone (uses brand guidelines if None)
+            include_hashtags: Whether to generate and include hashtags
 
         Returns:
             Dict mapping platform name to post data
@@ -165,7 +202,9 @@ class SocialMediaGenerator:
 
         for platform in self.platform_specs.keys():
             try:
-                posts[platform] = self.generate_post(user_prompt, platform, context, brand_voice)
+                posts[platform] = self.generate_post(
+                    user_prompt, platform, context, brand_voice, include_hashtags
+                )
             except Exception as e:
                 print(f"Error generating {platform} post: {e}")
                 posts[platform] = None
@@ -398,6 +437,76 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
 
         return {"image_path": image_path, "image_prompt": image_prompt}
 
+    @retry_with_exponential_backoff(max_retries=3, initial_delay=1.0)
+    def _generate_hashtags(self, content: str, platform: str, topic: str) -> list:
+        """
+        Generate relevant hashtags for the post using GPT-4.
+
+        Args:
+            content: The generated post content
+            platform: Target platform
+            topic: Original topic/prompt
+
+        Returns:
+            List of hashtag strings (without # symbol)
+        """
+        # Get platform-specific hashtag count
+        max_hashtags = self.platform_specs[platform]["max_hashtags"]
+
+        # Get hashtag strategy from brand guidelines
+        strategy = self.brand_voice.get_hashtag_strategy()
+        preferred_categories = strategy.get("preferred_categories", [])
+        avoid_categories = strategy.get("avoid", [])
+
+        hashtag_prompt = f"""
+Generate {max_hashtags} highly relevant and effective hashtags for this {platform} post.
+
+Post content:
+{content}
+
+Original topic: {topic}
+
+Requirements:
+- Generate EXACTLY {max_hashtags} hashtags
+- Make them relevant to the content and {platform} audience
+- Preferred categories: {', '.join(preferred_categories)}
+- Avoid: {', '.join(avoid_categories)}
+- Mix of specific and broader hashtags
+- Use proper capitalization (e.g., #SocialMedia not #socialmedia)
+- No spaces in hashtags
+- Make them searchable and trending-friendly
+
+Return ONLY the hashtags as a comma-separated list, without the # symbol.
+Example format: Innovation, TechTrends, BusinessGrowth
+"""
+
+        logger.info(f"Generating {max_hashtags} hashtags for {platform}")
+
+        response = self.openai_client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an expert at social media hashtag strategy.",
+                },
+                {"role": "user", "content": hashtag_prompt},
+            ],
+            temperature=0.7,
+            max_tokens=150,
+        )
+
+        result = response.choices[0].message.content.strip()
+
+        # Parse the comma-separated hashtags
+        hashtags = [tag.strip().replace("#", "") for tag in result.split(",")]
+
+        # Ensure we have the right number
+        hashtags = hashtags[:max_hashtags]
+
+        logger.info(f"Generated hashtags: {hashtags}")
+
+        return hashtags
+
 
 # CLI Testing Interface
 if __name__ == "__main__":
@@ -446,7 +555,16 @@ Examples:
     )
 
     parser.add_argument(
-        "--voice", "-v", default="professional and engaging", help="Desired brand voice/tone"
+        "--voice",
+        "-v",
+        default=None,
+        help="Desired brand voice/tone (uses brand guidelines if not specified)",
+    )
+
+    parser.add_argument(
+        "--no-hashtags",
+        action="store_true",
+        help="Disable hashtag generation",
     )
 
     args = parser.parse_args()
@@ -458,7 +576,8 @@ Examples:
     print(f"\nTopic: {args.prompt}")
     print(f"Platform(s): {args.platform}")
     print(f"Context: {args.context}")
-    print(f"Brand Voice: {args.voice}")
+    print(f"Brand Voice: {args.voice or 'From brand guidelines'}")
+    print(f"Hashtags: {'Disabled' if args.no_hashtags else 'Enabled'}")
     print("\n" + "-" * 70 + "\n")
 
     try:
@@ -468,11 +587,18 @@ Examples:
         # Generate posts
         if args.platform == "all":
             posts = generator.generate_all_platforms(
-                args.prompt, context=args.context, brand_voice=args.voice
+                args.prompt,
+                context=args.context,
+                brand_voice=args.voice,
+                include_hashtags=not args.no_hashtags,
             )
         else:
             post = generator.generate_post(
-                args.prompt, platform=args.platform, context=args.context, brand_voice=args.voice
+                args.prompt,
+                platform=args.platform,
+                context=args.context,
+                brand_voice=args.voice,
+                include_hashtags=not args.no_hashtags,
             )
             posts = {args.platform: post}
 
@@ -491,9 +617,15 @@ Examples:
                 print("-" * 70)
                 print(post_data["content"])
 
+                # Display hashtags
+                if post_data.get("hashtags"):
+                    print(f"\n{'-' * 70}")
+                    print(f"Hashtags: {', '.join(['#' + tag for tag in post_data['hashtags']])}")
+
                 # Display metadata
                 print(f"\n{'-' * 70}")
                 print(f"Character limit: {post_data['metadata']['char_limit']}")
+                print(f"Brand voice: {post_data['metadata']['brand_voice']}")
                 print(f"Image: {post_data['image_path']}")
                 print(f"Image prompt: {post_data['image_prompt'][:80]}...")
                 print(f"Generated at: {post_data['metadata']['timestamp']}")

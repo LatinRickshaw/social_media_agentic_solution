@@ -70,19 +70,23 @@ def test_generate_post_linkedin(generator):
         patch.object(generator, "_generate_content") as mock_content,
         patch.object(generator, "_create_image_prompt") as mock_image_prompt,
         patch.object(generator, "_generate_image") as mock_image,
+        patch.object(generator, "_generate_hashtags") as mock_hashtags,
     ):
 
         mock_content.return_value = "Test LinkedIn post content about productivity"
         mock_image_prompt.return_value = "Professional office environment with collaboration"
         mock_image.return_value = "generated_images/linkedin_123.png"
+        mock_hashtags.return_value = ["Productivity", "Business", "Innovation"]
 
         result = generator.generate_post("Test topic", "linkedin", "Test context", "professional")
 
-        assert result["content"] == "Test LinkedIn post content about productivity"
+        assert "Test LinkedIn post content about productivity" in result["content"]
         assert result["image_path"] == "generated_images/linkedin_123.png"
         assert result["platform"] == "linkedin"
         assert "metadata" in result
         assert result["metadata"]["char_limit"] == 3000
+        assert "hashtags" in result
+        assert len(result["hashtags"]) == 3
 
 
 def test_generate_post_twitter(generator):
@@ -264,13 +268,14 @@ def test_generate_all_platforms_with_failures(generator):
     """Test that failures in some platforms don't stop others"""
     call_count = 0
 
-    def mock_generate(prompt, platform, context, voice):
+    def mock_generate(prompt, platform, context=None, brand_voice=None, include_hashtags=True):
         nonlocal call_count
         call_count += 1
         if platform == "twitter":
             raise Exception("Twitter API failed")
         return {
             "content": f"Content for {platform}",
+            "hashtags": [],
             "image_path": "test.jpg",
             "image_prompt": "test",
             "platform": platform,
@@ -290,6 +295,105 @@ def test_generate_all_platforms_with_failures(generator):
         assert result["linkedin"] is not None
         assert result["facebook"] is not None
         assert result["nextdoor"] is not None
+
+
+def test_brand_voice_integration(generator):
+    """Test that brand voice is loaded from guidelines"""
+    brand_voice = generator.brand_voice.get_brand_voice("linkedin")
+
+    assert isinstance(brand_voice, str)
+    assert len(brand_voice) > 0
+    # Should contain some brand voice keywords from guidelines
+    assert any(
+        keyword in brand_voice.lower()
+        for keyword in ["professional", "innovative", "customer", "transparent", "reliable"]
+    )
+
+
+def test_hashtag_generation(generator):
+    """Test hashtag generation"""
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.content = (
+        "Productivity, Innovation, Business, TechTrends, Growth"
+    )
+
+    generator.openai_client.chat.completions.create = MagicMock(return_value=mock_response)
+
+    hashtags = generator._generate_hashtags(
+        "Post about productivity tools", "linkedin", "productivity tools"
+    )
+
+    assert isinstance(hashtags, list)
+    assert len(hashtags) <= 5  # LinkedIn max hashtags
+    assert all(isinstance(tag, str) for tag in hashtags)
+
+
+def test_generate_post_without_hashtags(generator):
+    """Test generating a post with hashtags disabled"""
+    with (
+        patch.object(generator, "_generate_content") as mock_content,
+        patch.object(generator, "_create_image_prompt") as mock_image_prompt,
+        patch.object(generator, "_generate_image") as mock_image,
+    ):
+
+        mock_content.return_value = "Test content"
+        mock_image_prompt.return_value = "Test prompt"
+        mock_image.return_value = "test.png"
+
+        result = generator.generate_post(
+            "Test topic", "linkedin", "", brand_voice="professional", include_hashtags=False
+        )
+
+        assert result["hashtags"] == []
+        assert "#" not in result["content"]  # No hashtags appended
+
+
+def test_generate_post_with_brand_guidelines(generator):
+    """Test that brand voice from guidelines is used when not specified"""
+    with (
+        patch.object(generator, "_generate_content") as mock_content,
+        patch.object(generator, "_create_image_prompt") as mock_image_prompt,
+        patch.object(generator, "_generate_image") as mock_image,
+        patch.object(generator, "_generate_hashtags") as mock_hashtags,
+    ):
+
+        mock_content.return_value = "Test content"
+        mock_image_prompt.return_value = "Test prompt"
+        mock_image.return_value = "test.png"
+        mock_hashtags.return_value = ["Test"]
+
+        # Don't specify brand_voice - should use guidelines
+        generator.generate_post("Test topic", "linkedin")
+
+        # Should have called _generate_content with brand voice from guidelines
+        call_args = mock_content.call_args
+        brand_voice_arg = call_args[0][3]  # 4th positional argument
+        assert brand_voice_arg is not None
+        assert isinstance(brand_voice_arg, str)
+
+
+def test_platform_specific_hashtag_limits(generator):
+    """Test that hashtag limits are respected per platform"""
+    from src.core.config import PLATFORM_SPECS
+
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+
+    for platform in PLATFORM_SPECS.keys():
+        max_tags = PLATFORM_SPECS[platform]["max_hashtags"]
+
+        # Return more hashtags than the limit
+        mock_response.choices[0].message.content = ", ".join(
+            [f"Tag{i}" for i in range(max_tags + 10)]
+        )
+
+        generator.openai_client.chat.completions.create = MagicMock(return_value=mock_response)
+
+        hashtags = generator._generate_hashtags("Test content", platform, "test")
+
+        # Should be limited to platform's max
+        assert len(hashtags) <= max_tags
 
 
 if __name__ == "__main__":

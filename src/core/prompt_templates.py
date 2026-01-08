@@ -6,68 +6,150 @@ PLATFORM_TEMPLATES = {
     "linkedin": """
 Create a professional LinkedIn post about: {topic}
 
-Requirements:
-- Professional, thought-leadership tone
-- 150-300 words optimal length
-- Include 3-5 relevant industry hashtags
-- Strong call-to-action at the end
-- Provide industry insights or clear value proposition
-- Use line breaks for readability
-- Optional: Start with a hook/question
+BRAND VOICE & TONE:
+Your writing must embody this brand voice: {brand_voice}
+Primary tone: Professional, thought-leadership style
+Approach: Insightful, industry-focused, value-driven
+
+CONTENT REQUIREMENTS:
+- Length: 150-300 words (optimal for LinkedIn engagement)
+- Structure: Start with a compelling hook or thought-provoking question
+- Substance: Provide genuine industry insights or clear value proposition
+- Formatting: Use line breaks every 2-3 sentences for scannability
+- Call-to-action: End with a strong, professional CTA
+
+HASHTAG STRATEGY:
+- Include 3-5 highly relevant industry or trending hashtags
+- Place hashtags at the end of the post
+- Mix specific industry terms with broader trending topics
+- Example format: #IndustryTerm #TrendingTopic #BrandRelevant
+
+WHAT TO AVOID:
+- Overly casual language or slang
+- Aggressive sales pitch
+- Generic buzzwords without substance
+- Emoji overuse (1-2 strategic emojis max)
 
 Additional context: {context}
-Brand voice: {brand_voice}
 
-Format: Plain text with natural paragraph breaks
+Format: Plain text with natural paragraph breaks. Do not use markdown formatting.
 """,
     "twitter": """
 Create an engaging Twitter/X post about: {topic}
 
-Requirements:
-- Maximum 280 characters (strict limit)
-- Conversational, punchy tone
-- Hook in the first sentence
-- 1-2 relevant hashtags maximum
-- Create urgency or curiosity when appropriate
-- Emojis optional but effective when used sparingly
+BRAND VOICE & TONE:
+Your writing must embody this brand voice: {brand_voice}
+Primary tone: Conversational, punchy, authentic
+Approach: Quick-hitting, attention-grabbing, shareable
+
+CONTENT REQUIREMENTS:
+- STRICT CHARACTER LIMIT: Maximum 280 characters (including hashtags and spaces)
+- Hook: Lead with your strongest point in the first 10 words
+- Value: Deliver immediate value or spark curiosity
+- Urgency: Create FOMO or drive engagement when appropriate
+- Emojis: Use 1-2 relevant emojis strategically (optional but effective)
+
+HASHTAG STRATEGY:
+- Use ONLY 1-2 highly targeted hashtags
+- Choose trending or niche-specific tags
+- Place at the end or naturally within the text
+- Count hashtags in your 280-character limit
+
+TWITTER-SPECIFIC TACTICS:
+- Front-load the most important information
+- Use conversational language that feels authentic
+- End with a question to drive replies (optional)
+- Make it retweetable - think shareability
+
+WHAT TO AVOID:
+- Thread-style multi-tweets (single tweet only)
+- Hashtag stuffing (#no #more #than #two)
+- Overly promotional language
+- Going over 280 characters (this will cause rejection)
 
 Additional context: {context}
-Brand voice: {brand_voice}
 
-Format: Single paragraph, character count must be under 280
+Format: Single paragraph. Count characters carefully. Must be under 280 total.
 """,
     "facebook": """
 Create a community-focused Facebook post about: {topic}
 
-Requirements:
-- Friendly, conversational tone
-- 100-200 words optimal
-- Encourage engagement (questions, polls, calls to action)
-- 2-4 relevant hashtags
-- Authentic and relatable
-- Can be slightly more casual than LinkedIn
+BRAND VOICE & TONE:
+Your writing must embody this brand voice: {brand_voice}
+Primary tone: Friendly, conversational, relatable
+Approach: Community-building, authentic storytelling, engaging
+
+CONTENT REQUIREMENTS:
+- Length: 100-200 words (optimal for Facebook feed)
+- Opening: Start with a relatable statement or question
+- Engagement: Explicitly encourage comments, shares, or reactions
+- Storytelling: Use conversational, authentic language
+- Call-to-action: Include clear engagement prompt (ask questions, run polls, etc.)
+- Formatting: Short paragraphs with natural breaks
+
+HASHTAG STRATEGY:
+- Include 2-4 relevant hashtags
+- Place at the end of the post
+- Mix branded hashtags with popular topics
+- Less formal than LinkedIn, more playful options acceptable
+
+FACEBOOK-SPECIFIC TACTICS:
+- Ask questions to drive comments
+- Use "Tag a friend who..." style prompts
+- Reference shared experiences or emotions
+- Slightly more casual than LinkedIn (but still professional)
+- Emojis are welcome (2-3 relevant ones)
+
+WHAT TO AVOID:
+- Corporate jargon
+- Overly formal language
+- Link-heavy posts (algorithm deprioritizes)
+- Clickbait tactics
 
 Additional context: {context}
-Brand voice: {brand_voice}
 
-Format: Conversational paragraphs with natural breaks
+Format: Conversational paragraphs with natural breaks. Write like you're talking to friends.
 """,
     "nextdoor": """
 Create a neighborhood-friendly Nextdoor post about: {topic}
 
-Requirements:
-- Local, community-focused tone
-- 100-250 words
-- Helpful and genuinely neighborly
-- Clear value to local community
-- Minimal hashtags (1-2 maximum)
-- Emphasis on local benefit or community service
-- Avoid heavy sales language
+BRAND VOICE & TONE:
+Your writing must embody this brand voice: {brand_voice}
+Primary tone: Neighborly, helpful, locally-focused
+Approach: Community service, genuine helpfulness, local value
+
+CONTENT REQUIREMENTS:
+- Length: 100-250 words
+- Opening: Greet neighbors warmly (e.g., "Hi neighbors!")
+- Local focus: Explicitly connect to neighborhood benefit or local community
+- Helpfulness: Frame as service or valuable information for locals
+- Authenticity: Be genuinely neighborly, not sales-focused
+- Call-to-action: Gentle invitation (not aggressive sales pitch)
+
+HASHTAG STRATEGY:
+- Minimal hashtags: 1-2 maximum
+- Use local area or community-focused tags
+- Example: #YourNeighborhood #CommunityFirst
+- Hashtags are less important on Nextdoor than other platforms
+
+NEXTDOOR-SPECIFIC TACTICS:
+- Emphasize how this helps the local community
+- Reference neighborhood-specific benefits
+- Use warm, personal language
+- Position as a neighbor helping neighbors
+- Avoid corporate speak entirely
+- Think "local business owner" not "national brand"
+
+WHAT TO AVOID:
+- Aggressive sales language or pressure tactics
+- Corporate/marketing speak
+- Anything not relevant to local community
+- Heavy promotion without genuine local value
+- Overly promotional tone
 
 Additional context: {context}
-Brand voice: {brand_voice}
 
-Format: Friendly, approachable paragraphs
+Format: Friendly, approachable paragraphs. Write like a helpful neighbor, not a marketer.
 """,
 }
 

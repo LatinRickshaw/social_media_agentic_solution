@@ -539,13 +539,16 @@ This skill helps you build it right the first time.
 
 Complete workflow:
 
-1. `/02-start-task SOC-15` - Begin work on ticket
+1. `/02-start-task SOC-15` - Begin work on ticket, Jira → "In Progress"
 2. `/03-dev-execute "Add JWT authentication" SOC-15` - Build the feature using best practices
 3. Review the implementation against checklist
 4. Run tests
-5. `/05-complete-task SOC-15 "Added JWT auth"` - Commit and close
+5. `/04-reconcile-work SOC-15` - Optional: Verify alignment with requirements
+6. `/05-create-pr SOC-15 "Added JWT auth"` - Commit, push, create PR, Jira → "In Review"
+7. `/06-pr-review` - Review and approve PR
+8. `/07-complete-task` - Merge PR, Jira → "Done"
 
-This ensures disciplined development from start to finish.
+This ensures disciplined development from start to finish with proper code review and SDLC practices.
 
 ## Notes
 

@@ -1,13 +1,18 @@
 # Start Task Skill
 
-Automates the workflow for beginning a development task:
+**IMPORTANT: This skill ONLY handles task setup. It does NOT implement the task or write code.**
+
+Automates the workflow for **preparing to begin** a development task:
 
 1. Checks git status to ensure working directory is clean
 2. Moves to the `main` branch if not already on the `main` branch
 3. Pulls latest changes from remote (if needed)
-4. Fetches the Jira ticket details using the Atlassian MCP server
-5. Transitions the Jira ticket to "In Progress" using the Atlassian MCP Server
-6. Adds a comment to the Jira ticket indicating work has started using the Atlassian MCP Server
+4. Creates a feature branch for the task
+5. Fetches the Jira ticket details using the Atlassian MCP server
+6. Transitions the Jira ticket to "In Progress" using the Atlassian MCP Server
+7. Adds a comment to the Jira ticket indicating work has started using the Atlassian MCP Server
+
+**After this skill completes, the user should use `/03-dev-execute` to actually implement the task.**
 
 ## Usage
 
@@ -44,24 +49,43 @@ Automates the workflow for beginning a development task:
 - If behind, prompts to pull latest changes
 - Helps avoid merge conflicts later
 
-### 4. Fetch Jira Ticket using Atlassian MCP Server
+### 4. Create Feature Branch
+
+- Creates a feature branch using the naming convention: `feature/<JIRA-KEY>-<description>`
+- Example: `feature/SOC-4-platform-templates-optimization`
+- Checks out the new branch
+
+### 5. Fetch Jira Ticket using Atlassian MCP Server
 
 - Retrieves the Jira issue details using the Atlassian MCP Server
 - Displays the ticket summary and current status
 - Confirms the ticket exists before proceeding
 
-### 5. Transition to In Progress using the Atlassian MCP Server
+### 6. Transition to In Progress using the Atlassian MCP Server
 
 - Fetches available transitions for the ticket using the Atlassian MCP Server
 - Looks for "In Progress" transition using the Atlassian MCP Server
 - Transitions the ticket from current status (e.g., "To Do") to "In Progress" using the Atlassian MCP Server
 - Handles custom workflow transitions automatically
 
-### 6. Add Jira Comment using the Atlassian MCP Server
+### 7. Add Jira Comment using the Atlassian MCP Server
 
 - Adds a comment to the Jira ticket: "Started work on this task" using the Atlassian MCP Server
 - Provides traceability of when work began
 - Visible to the team in Jira
+
+## What It Does NOT Do
+
+**CRITICAL: This skill stops after setup and does NOT:**
+
+- Read or analyze the codebase
+- Write any code or implementation
+- Create or modify files (except git operations)
+- Run tests
+- Make commits
+- Execute the task requirements
+
+**The actual implementation work should be done with `/03-dev-execute` after this skill completes.**
 
 ## Prerequisites
 
@@ -106,10 +130,25 @@ The skill will:
 
 ## Workflow Integration
 
-Typical workflow:
+**Typical workflow with clear separation of concerns:**
 
-1. `/02-start-task SOC-5` - Begin work on ticket SOC-5
-2. Make your code changes
-3. `/05-complete-task SOC-5 "Implemented feature X"` - Finish and commit
+1. **Setup Phase**: `/02-start-task SOC-5`
+   - Creates branch `feature/SOC-5-description`
+   - Transitions Jira ticket to "In Progress"
+   - Adds comment to Jira
+   - **STOPS HERE** - Does not implement anything
 
-This ensures clean separation between tasks and proper Jira tracking.
+2. **Implementation Phase**: User manually executes `/03-dev-execute` or works on the task
+   - Reads requirements from Jira ticket
+   - Analyzes codebase
+   - Writes code
+   - Runs tests
+   - Makes implementation commits
+
+3. **Completion Phase**: `/05-complete-task SOC-5 "Implemented feature X"`
+   - Creates final commit
+   - Pushes branch
+   - Creates pull request
+   - Transitions Jira to "Done"
+
+This ensures clean separation between setup, implementation, and completion phases.
