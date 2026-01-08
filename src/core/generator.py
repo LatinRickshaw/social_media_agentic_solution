@@ -120,7 +120,7 @@ class SocialMediaGenerator:
         self.temperature = Config.OPENAI_TEMPERATURE
 
         # Initialize Gemini client for image generation (new API)
-        self.genai_client = genai.Client(api_key=Config.GOOGLE_API_KEY)
+        self.genai_client: genai.Client = genai.Client(api_key=Config.GOOGLE_API_KEY)
 
         # Load platform specifications
         self.platform_specs = PLATFORM_SPECS
