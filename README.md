@@ -18,7 +18,9 @@ A production-ready system that generates platform-optimized social media posts w
 ### Key Features
 - ✨ AI-powered content generation (GPT-4)
 - 🎨 AI-generated images (Google Gemini)
-- 🎯 Platform-specific optimization
+- 🎯 Platform-specific optimization with tailored templates
+- 🎙️ **Brand voice integration** - Automatic brand guidelines enforcement
+- #️⃣ **Smart hashtag generation** - AI-powered, platform-optimized hashtags
 - 📊 Quality checking and scoring
 - 🤖 Automated publishing workflow
 - 📈 Performance metrics tracking
@@ -162,19 +164,47 @@ JIRA_PROJECT_KEY=SOC
 ```python
 from src.core.generator import SocialMediaGenerator
 
-# Initialize generator
+# Initialize generator (uses default brand guidelines)
 generator = SocialMediaGenerator()
 
-# Generate a single post
+# Generate a single post with automatic brand voice
 post = generator.generate_post(
     user_prompt="Announcing our new AI-powered feature",
     platform="linkedin",
-    context="Focus on productivity benefits",
-    brand_voice="innovative and customer-focused"
+    context="Focus on productivity benefits"
+    # brand_voice is optional - uses brand guidelines if not specified
 )
 
 print(post['content'])
+print(f"Hashtags: {post['hashtags']}")
 print(f"Image: {post['image_path']}")
+```
+
+### Using Custom Brand Guidelines
+
+```python
+# Initialize with custom brand guidelines
+generator = SocialMediaGenerator(
+    brand_guidelines_path="path/to/custom/brand_guidelines.yaml"
+)
+
+# Generate post with custom brand voice override
+post = generator.generate_post(
+    user_prompt="Customer success story",
+    platform="linkedin",
+    brand_voice="friendly and authentic"  # Override brand guidelines
+)
+```
+
+### Disable Hashtags
+
+```python
+# Generate post without hashtags
+post = generator.generate_post(
+    user_prompt="Industry insights on remote work",
+    platform="twitter",
+    include_hashtags=False  # Disable automatic hashtag generation
+)
 ```
 
 ### Generate for All Platforms
@@ -183,13 +213,16 @@ print(f"Image: {post['image_path']}")
 # Generate posts for all platforms at once
 posts = generator.generate_all_platforms(
     user_prompt="Announcing our new AI-powered feature",
-    context="Focus on productivity and efficiency",
-    brand_voice="professional and engaging"
+    context="Focus on productivity and efficiency"
+    # Uses brand guidelines automatically for each platform
 )
 
 for platform, post_data in posts.items():
-    print(f"\n{platform.upper()}:")
-    print(post_data['content'])
+    if post_data:  # Check for successful generation
+        print(f"\n{platform.upper()}:")
+        print(post_data['content'])
+        print(f"Hashtags: {', '.join(['#' + h for h in post_data['hashtags']])}")
+        print(f"Brand voice used: {post_data['metadata']['brand_voice']}")
 ```
 
 ### Using the Web Interface
@@ -205,23 +238,67 @@ streamlit run src/ui/streamlit_app.py
 5. Approve or regenerate
 6. Schedule or publish
 
+## Brand Voice Configuration
+
+The generator uses brand guidelines defined in `config/brand_guidelines.yaml` to ensure consistent brand voice across all platforms.
+
+### Brand Guidelines Structure
+
+```yaml
+brand_voice:
+  primary: "Professional, friendly, helpful"
+  tone_keywords:
+    - "innovative"
+    - "customer-first"
+    - "authentic"
+
+platform_preferences:
+  linkedin:
+    focus: "Industry insights, thought leadership"
+    style: "Formal yet accessible"
+  twitter:
+    focus: "Quick tips, industry news"
+    style: "Casual and conversational"
+
+hashtag_strategy:
+  preferred_categories:
+    - "industry-specific"
+    - "trending relevant topics"
+  avoid:
+    - "overused generic hashtags"
+    - "spam-like hashtag stuffing"
+```
+
+### Platform-Specific Templates
+
+Each platform has a detailed, optimized template that includes:
+- **Brand voice integration** - Automatically applied from guidelines
+- **Content requirements** - Length, structure, formatting
+- **Hashtag strategy** - Platform-optimized hashtag counts
+- **Platform-specific tactics** - Best practices for each network
+- **What to avoid** - Common mistakes and anti-patterns
+
+See [src/core/prompt_templates.py](src/core/prompt_templates.py) for full template details.
+
 ## Platform Specifications
 
-| Platform | Char Limit | Optimal Length | Image Size | Hashtags |
-|----------|-----------|----------------|------------|----------|
-| LinkedIn | 3,000 | 150-300 words | 1200×627 | 3-5 |
-| Twitter/X | 280 | 200-270 chars | 1200×675 | 1-2 |
-| Facebook | 63,206 | 100-200 words | 1200×630 | 2-4 |
-| Nextdoor | 5,000 | 100-250 words | 1200×900 | 1-2 |
+| Platform | Char Limit | Optimal Length | Image Size | Max Hashtags | Tone |
+|----------|-----------|----------------|------------|--------------|------|
+| LinkedIn | 3,000 | 150-300 words | 1200×627 | 5 | Professional, insightful |
+| Twitter/X | 280 | 200-270 chars | 1200×675 | 2 | Conversational, punchy |
+| Facebook | 63,206 | 100-200 words | 1200×630 | 5 | Friendly, engaging |
+| Nextdoor | 5,000 | 100-250 words | 1200×900 | 3 | Neighborly, helpful |
 
 ## Development Phases
 
 ### ✅ Phase 1: Core Pipeline (Weeks 1-3)
 - [x] Project setup and dependencies
 - [x] Core generator class implementation
-- [x] Platform-specific templates
+- [x] Platform-specific templates with detailed optimization
+- [x] Brand voice integration with YAML guidelines
+- [x] Smart hashtag generation with GPT-4
 - [x] OpenAI & Gemini integration
-- [ ] CLI testing interface
+- [x] CLI testing interface
 
 ### 🔄 Phase 2: Review Interface (Weeks 3-4)
 - [ ] Streamlit web interface
