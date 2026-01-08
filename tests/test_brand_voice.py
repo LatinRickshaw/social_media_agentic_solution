@@ -159,5 +159,41 @@ def test_invalid_guidelines_path():
         BrandVoice(guidelines_path="/nonexistent/path/guidelines.yaml")
 
 
+def test_invalid_yaml_content(tmp_path):
+    """Test that invalid YAML content raises proper error"""
+    # Create a temporary invalid YAML file
+    invalid_yaml = tmp_path / "invalid.yaml"
+    invalid_yaml.write_text("{ invalid yaml content: [not closed")
+
+    with pytest.raises(ValueError, match="Invalid YAML"):
+        BrandVoice(guidelines_path=str(invalid_yaml))
+
+
+def test_non_dict_yaml_content(tmp_path):
+    """Test that non-dictionary YAML raises proper error"""
+    # Create a YAML file with a list instead of dict
+    list_yaml = tmp_path / "list.yaml"
+    list_yaml.write_text("- item1\n- item2\n- item3")
+
+    with pytest.raises(ValueError, match="must be a YAML dictionary"):
+        BrandVoice(guidelines_path=str(list_yaml))
+
+
+def test_error_handling_robustness():
+    """Test that brand voice handles missing keys gracefully"""
+    # Test with actual guidelines file that should exist
+    brand_voice = BrandVoice()
+
+    # These methods should not raise errors even if keys are missing
+    voice = brand_voice.get_brand_voice("nonexistent_platform")
+    assert isinstance(voice, str)
+
+    strategy = brand_voice.get_hashtag_strategy()
+    assert isinstance(strategy, dict)
+
+    values = brand_voice.get_values()
+    assert isinstance(values, list)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
