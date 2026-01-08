@@ -4,14 +4,27 @@ Handles environment variables and platform specifications.
 """
 
 import os
-from typing import Dict
+from typing import Dict, Tuple, TypedDict
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
+
+class PlatformSpec(TypedDict):
+    """Type definition for platform specifications"""
+
+    char_limit: int
+    optimal_length: str
+    image_size: Tuple[int, int]
+    image_format: str
+    max_hashtags: int
+    tone: str
+    api_rate_limit: str
+
+
 # Platform Specifications
-PLATFORM_SPECS = {
+PLATFORM_SPECS: Dict[str, PlatformSpec] = {
     "linkedin": {
         "char_limit": 3000,
         "optimal_length": "150-300 words",
@@ -107,6 +120,8 @@ class Config:
         return validations
 
     @classmethod
-    def get_platform_spec(cls, platform: str) -> Dict:
+    def get_platform_spec(cls, platform: str) -> PlatformSpec:
         """Get specifications for a specific platform"""
-        return PLATFORM_SPECS.get(platform, {})
+        if platform not in PLATFORM_SPECS:
+            raise ValueError(f"Unsupported platform: {platform}")
+        return PLATFORM_SPECS[platform]

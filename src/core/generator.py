@@ -4,7 +4,7 @@ Uses GPT-4 for content and Gemini for images.
 """
 
 from datetime import datetime
-from typing import Dict, Optional, Callable, Any, Tuple, cast
+from typing import Dict, Optional, Callable, Any
 import os
 import time
 import logging
@@ -241,7 +241,7 @@ class SocialMediaGenerator:
         result = response.choices[0].message.content.strip()
 
         # Validate and adjust character count
-        char_limit = cast(int, self.platform_specs[platform]["char_limit"])
+        char_limit = self.platform_specs[platform]["char_limit"]
         if len(result) > char_limit:
             logger.warning(
                 f"Content exceeds {platform} limit ({len(result)} > {char_limit}). "
@@ -333,7 +333,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
         Returns path to saved image.
         """
         # Get platform-specific image dimensions
-        width, height = cast(Tuple[int, int], self.platform_specs[platform]["image_size"])
+        width, height = self.platform_specs[platform]["image_size"]
 
         logger.info(f"Generating image for {platform} ({width}x{height})")
 
@@ -403,7 +403,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
         """
         Create a placeholder image when generation fails.
         """
-        width, height = cast(Tuple[int, int], self.platform_specs[platform]["image_size"])
+        width, height = self.platform_specs[platform]["image_size"]
 
         # Create a simple colored image with text
         img = Image.new("RGB", (width, height), color=(240, 240, 245))
@@ -501,7 +501,7 @@ Example format: Innovation, TechTrends, BusinessGrowth
         hashtags = [tag.strip().replace("#", "") for tag in result.split(",")]
 
         # Ensure we have the right number
-        hashtags = hashtags[: cast(int, max_hashtags)]
+        hashtags = hashtags[:max_hashtags]
 
         logger.info(f"Generated hashtags: {hashtags}")
 

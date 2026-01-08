@@ -4,7 +4,13 @@ Brand voice utilities for loading and applying brand guidelines.
 
 import yaml
 from pathlib import Path
-from typing import Dict, Optional, cast
+from typing import Dict, Optional
+import logging
+
+from .config import PLATFORM_SPECS
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class BrandVoice:
@@ -32,8 +38,22 @@ class BrandVoice:
         if not self.guidelines_path.exists():
             raise FileNotFoundError(f"Brand guidelines not found at {self.guidelines_path}")
 
-        with open(self.guidelines_path, "r") as f:
-            return yaml.safe_load(f)
+        try:
+            with open(self.guidelines_path, "r") as f:
+                guidelines = yaml.safe_load(f)
+
+            if not isinstance(guidelines, dict):
+                raise ValueError(
+                    f"Brand guidelines must be a YAML dictionary, got {type(guidelines)}"
+                )
+
+            logger.info(f"Successfully loaded brand guidelines from {self.guidelines_path}")
+            return guidelines
+
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in brand guidelines file: {e}") from e
+        except Exception as e:
+            raise RuntimeError(f"Failed to load brand guidelines: {e}") from e
 
     def get_brand_voice(self, platform: Optional[str] = None) -> str:
         """
@@ -116,6 +136,9 @@ class BrandVoice:
         """
         Generate appropriate hashtags based on platform and topic.
 
+        NOTE: This is a fallback/simple implementation. For production use,
+        prefer the _generate_hashtags() method in the generator which uses GPT-4.
+
         Args:
             platform: Target platform
             topic: Post topic/theme
@@ -124,11 +147,10 @@ class BrandVoice:
         Returns:
             List of hashtag strings (without # symbol)
         """
-        # Get platform-specific hashtag limits from config
-        from .config import PLATFORM_SPECS
-
-        platform_spec = PLATFORM_SPECS.get(platform, {})
-        max_hashtags = cast(int, platform_spec.get("max_hashtags", 3))
+        if platform not in PLATFORM_SPECS:
+            max_hashtags = 3  # Default fallback
+        else:
+            max_hashtags = PLATFORM_SPECS[platform]["max_hashtags"]
 
         if count is None:
             count = max_hashtags
