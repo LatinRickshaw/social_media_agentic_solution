@@ -178,14 +178,16 @@ Calculated as (completed tasks + met criteria) / (total tasks + total criteria)
 2. [Step 2]
 ```
 
-### 5. Post Report
+### 5. Post Report & Cleanup
 
-Options for report output:
+The skill will:
 
-- Post as Jira comment using the Atlassian MCP server
-- Save to file (`RECONCILIATION_REPORT.md`)
-- Display in terminal
-- All of the above
+1. **Generate detailed markdown report** - Save to `RECONCILIATION_REPORT_[JIRA-KEY].md` temporarily
+2. **Post summary to Jira** - Add comment to the ticket using Atlassian MCP server
+3. **Clean up** - Remove the markdown file from the codebase after posting to Jira
+4. **Display summary** - Show key findings in terminal
+
+This ensures the reconciliation is documented in Jira (the source of truth) without cluttering the codebase with temporary report files.
 
 ## When to Use This Skill
 
@@ -223,23 +225,16 @@ Options for report output:
 | ---------- | -------- | ------------------------------- | -------- |
 | `jira_key` | Yes      | The Jira issue key to reconcile | `SOC-15` |
 
-## Output Options
+## Output Behavior
 
-Can be specified as optional flags:
+The skill always performs these actions in sequence:
 
-```bash
-# Post to Jira only
-/04-reconcile-work SOC-15
+1. Generate detailed report markdown file (`RECONCILIATION_REPORT_[JIRA-KEY].md`)
+2. Post summary comment to Jira ticket
+3. Display summary in terminal
+4. Remove the markdown file from the codebase
 
-# Save to file only
-/04-reconcile-work SOC-15 --file
-
-# Display in terminal only
-/04-reconcile-work SOC-15 --terminal
-
-# All outputs
-/04-reconcile-work SOC-15 --all
-```
+This keeps Jira as the source of truth while providing immediate feedback during execution.
 
 ## Benefits
 
