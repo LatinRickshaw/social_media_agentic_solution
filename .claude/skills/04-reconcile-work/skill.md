@@ -251,11 +251,13 @@ This keeps Jira as the source of truth while providing immediate feedback during
 
 ```
 1. /02-start-task SOC-15
-2. /03-dev-execute SOc-15
-3. /04-reconcile-work SOC-15         # Audit before completion
+2. /03-dev-execute SOC-15
+3. /04-reconcile-work SOC-15         # Audit before creating PR
 4. Review reconciliation report
 5. Address any gaps or issues
-6. /05-complete-task SOC-15 "Done"
+6. /05-create-pr SOC-15 "Done"       # Create PR for review
+7. /06-pr-review                     # Review and approve
+8. /07-complete-task                 # Merge and close
 ```
 
 ### Sprint Retrospective:
