@@ -5,12 +5,13 @@
 Automates the workflow for **preparing to begin** a development task:
 
 1. Checks git status to ensure working directory is clean
-2. Moves to the `main` branch if not already on the `main` branch
-3. Pulls latest changes from remote (if needed)
-4. Creates a feature branch for the task
+2. Moves to the `main` branch if not already on the `main` branch locally using git
+3. Pulls latest changes from remote (if needed) using git
+4. Creates a feature branch for the task uysing git
 5. Fetches the Jira ticket details using the Atlassian MCP server
 6. Transitions the Jira ticket to "In Progress" using the Atlassian MCP Server
 7. Adds a comment to the Jira ticket indicating work has started using the Atlassian MCP Server
+8. Analyzes ticket complexity and recommends `/01-investigate-task` if needed (non-blocking)
 
 **After this skill completes, the user should use `/03-dev-execute` to actually implement the task.**
 
@@ -74,6 +75,63 @@ Automates the workflow for **preparing to begin** a development task:
 - Provides traceability of when work began
 - Visible to the team in Jira
 
+### 8. Analyze Complexity & Recommend Investigation (NEW)
+
+After transitioning the ticket to "In Progress", analyze ticket content for complexity indicators:
+
+**Complexity Keywords Detection:**
+
+Check ticket summary and description for these keywords:
+
+- **Deprecation/Migration**: "deprecated", "migration", "upgrade", "breaking change"
+- **Architecture**: "architecture", "refactor", "redesign", "restructure"
+- **Performance/Security**: "performance", "security", "scalability", "optimization"
+- **Unknown/Research**: "investigate", "research", "unknown", "unclear", "complex"
+- **Integration**: "integrate", "external API", "third-party", "service"
+
+**Recommendation Logic:**
+
+If complexity keywords are detected:
+
+1. Display detected keywords to user
+2. Show non-blocking recommendation to run `/01-investigate-task`
+3. Explain what investigation will provide
+4. Clarify that investigation is optional - user can skip if requirements are clear
+
+**When NOT to Suggest:**
+
+Do NOT suggest investigation for tickets with:
+
+- Bug fixes with known solution
+- Simple UI changes
+- Documentation updates
+- Configuration changes
+- "simple" or "trivial" labels
+
+**Output Format:**
+
+```
+⚠️  COMPLEXITY INDICATORS DETECTED
+
+Keywords found: deprecated, migration, API
+
+RECOMMENDATION:
+This task may benefit from technical investigation.
+
+Consider running: /01-investigate-task SOC-XX
+
+Investigation will:
+  • Analyze codebase for existing patterns
+  • Identify deprecated dependencies
+  • Document architectural decisions needed
+  • Assess complexity and risks
+  • Post findings to Jira for team review
+
+You can skip if requirements are already clear.
+```
+
+**Important**: This is a **suggestion only**, not a requirement. The workflow continues regardless of user's decision.
+
 ## What It Does NOT Do
 
 **CRITICAL: This skill stops after setup and does NOT:**
@@ -133,22 +191,56 @@ The skill will:
 **Typical workflow with clear separation of concerns:**
 
 1. **Setup Phase**: `/02-start-task SOC-5`
+
    - Creates branch `feature/SOC-5-description`
    - Transitions Jira ticket to "In Progress"
    - Adds comment to Jira
+   - Analyzes complexity and recommends investigation if needed
    - **STOPS HERE** - Does not implement anything
 
-2. **Implementation Phase**: User manually executes `/03-dev-execute` or works on the task
-   - Reads requirements from Jira ticket
+2. **Optional Investigation Phase**: `/01-investigate-task SOC-5` (if recommended)
+
+   - Only run if complexity indicators detected
+   - User can skip if requirements are clear
+   - Posts investigation findings to Jira
+
+3. **Implementation Phase**: `/03-dev-execute SOC-5`
+
+   - Fetches requirements from Jira ticket
+   - Uses investigation findings if available
    - Analyzes codebase
    - Writes code
    - Runs tests
    - Makes implementation commits
 
-3. **Completion Phase**: `/05-complete-task SOC-5 "Implemented feature X"`
+4. **Completion Phase**: `/05-complete-task SOC-5 "Implemented feature X"`
    - Creates final commit
    - Pushes branch
    - Creates pull request
    - Transitions Jira to "Done"
 
-This ensures clean separation between setup, implementation, and completion phases.
+This ensures clean separation between setup, investigation (optional), implementation, and completion phases.
+
+### Example: Simple Task (No Investigation)
+
+```bash
+/02-start-task SOC-22
+# Output: No complexity indicators detected, proceed directly to implementation
+/03-dev-execute SOC-22
+```
+
+### Example: Complex Task (Investigation Recommended)
+
+```bash
+/02-start-task SOC-14
+# Output: ⚠️  COMPLEXITY INDICATORS DETECTED
+#         Keywords found: deprecated, migration
+#         Consider running: /01-investigate-task SOC-14
+
+# User decides to investigate first
+/01-investigate-task SOC-14
+# [Investigation findings posted to Jira]
+
+# Then proceed with implementation
+/03-dev-execute SOC-14
+```

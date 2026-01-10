@@ -191,6 +191,91 @@ This ensures the reconciliation is documented in Jira (the source of truth) with
 
 ## When to Use This Skill
 
+### Use /04-reconcile-work When:
+
+**REQUIRED for:**
+- Multi-day development (>3 days of work)
+- Multiple commits with scope changes
+- Work interrupted and resumed later
+- Sprint demo preparation
+- Complex tickets with many sub-tasks
+- First time implementing this type of feature
+
+**RECOMMENDED for:**
+- Work with any scope additions/changes
+- Unclear initial requirements (clarified during work)
+- Want confidence before creating PR
+- Team leads reviewing subordinate work
+- Large refactoring efforts
+- Cross-cutting changes affecting multiple modules
+
+**SKIP for:**
+- Single commit, simple fix
+- Obvious 1:1 mapping to ticket requirements
+- Already confident all requirements met
+- Simple bug fixes or typo corrections
+- Documentation-only changes
+- Configuration changes with no business logic
+
+### Quick Decision Guide
+
+```
+Is it multi-day work? ─── YES ──→ USE /04-reconcile-work
+        │
+        NO
+        │
+        ↓
+Were there scope changes? ─── YES ──→ USE /04-reconcile-work
+        │
+        NO
+        │
+        ↓
+Is it a complex feature? ─── YES ──→ USE /04-reconcile-work
+        │
+        NO
+        │
+        ↓
+More than 3 commits? ─── YES ──→ CONSIDER /04-reconcile-work
+        │
+        NO
+        │
+        ↓
+    SKIP (optional)
+```
+
+### Real-World Examples
+
+**SOC-14** (Migration task):
+- Single-commit migration
+- Clear requirements from deprecation notice
+- No scope changes
+- One file modified (generator.py) + test updates
+- **Decision**: ✅ Correctly SKIPPED reconciliation
+- **Rationale**: Simple, focused change with clear requirements
+
+**SOC-45** (Complex feature - hypothetical):
+- 5 days of work
+- 12 commits
+- Scope expanded (added CLI features beyond requirements)
+- 8 files created, 15 files modified
+- **Decision**: ⚠️ SHOULD use reconciliation
+- **Rationale**: Multi-day work with scope changes
+
+**SOC-28** (Bug fix - hypothetical):
+- 2-line change in error handler
+- Single commit
+- Obvious fix for reported issue
+- **Decision**: ✅ Correctly SKIP reconciliation
+- **Rationale**: Trivial fix with no scope concerns
+
+**SOC-67** (Refactoring - hypothetical):
+- 3 days of work
+- 8 commits
+- Extract service classes
+- No new features, just restructuring
+- **Decision**: ⚠️ SHOULD use reconciliation
+- **Rationale**: Multi-day work affecting multiple files, need to verify all functionality preserved
+
 ### Use Before:
 
 - Creating a pull request
@@ -204,13 +289,6 @@ This ensures the reconciliation is documented in Jira (the source of truth) with
 - Work spanning multiple commits
 - Work with scope changes
 - Work by multiple contributors
-
-### Skip For:
-
-- Simple bug fixes
-- Single-commit changes
-- Work already reviewed
-- Obvious complete implementations
 
 ## Prerequisites
 

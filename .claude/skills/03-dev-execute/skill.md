@@ -5,28 +5,46 @@ Guides the development of software features following engineering best practices
 ## Usage
 
 ```
-/03-dev-execute "<task_description>" [jira_key]
+/03-dev-execute <JIRA-KEY>
 ```
 
 ### Examples
 
 ```bash
 # Execute a feature development
-/03-dev-execute "Add user authentication with JWT tokens" SOC-15
+/03-dev-execute SOC-15
 
 # Execute a bug fix
-/03-dev-execute "Fix race condition in post generation" SOC-22
+/03-dev-execute SOC-22
 
 # Execute a refactoring
-/03-dev-execute "Extract email service from UserManager class"
+/03-dev-execute SOC-18
 
 # Execute with more context
-/03-dev-execute "Implement LinkedIn API integration with OAuth2 flow and post scheduling" SOC-8
+/03-dev-execute SOC-8
 ```
 
 ## What It Does
 
 This skill guides you through disciplined software development by:
+
+### Phase 0: Fetch Task Context (BEFORE any planning)
+
+**0.1 Retrieve Jira Ticket**
+
+- Fetch ticket using Atlassian MCP server with the provided Jira key
+- Extract ticket title and description
+- Identify acceptance criteria from ticket
+- Check for any investigation report from `/01-investigate-task`
+- Retrieve current ticket status
+- Use this as the task context throughout all phases
+
+**0.2 Validate Prerequisites**
+
+- Verify ticket exists and is accessible
+- Ensure ticket has sufficient detail for implementation
+- Note any linked investigation reports or architectural decisions
+- Confirm ticket is in "In Progress" status (should be set by `/02-start-task`)
 
 ### Phase 1: Understanding & Planning (BEFORE any code)
 
@@ -67,34 +85,103 @@ This skill guides you through disciplined software development by:
 **1.5 Architectural Decision Recording**
 
 - Identify significant architectural decisions needed
-- For each major decision, document:
-  - Context: Why this decision is needed
-  - Decision: What was chosen
-  - Alternatives: Other options considered
-  - Rationale: Why this choice over alternatives
+- For each major decision, document using one of two formats based on complexity
 - Create decision record as code comment in affected files
-- Format:
 
-  ```python
-  """
-  ARCHITECTURAL DECISION: [Short Title]
+**Enhanced Format (RECOMMENDED for complex decisions):**
 
-  Context: [Why this decision was needed]
-  Decision: [What was chosen]
-  Alternatives: [Other options considered]
-  Rationale: [Why this choice over alternatives]
-  Date: YYYY-MM-DD
-  Ticket: [Jira key if applicable]
-  """
-  ```
+```python
+"""
+ARCHITECTURAL DECISION: [Short Title]
 
+Context:
+[Why this decision was needed - business/technical context]
+[What problem does this solve?]
+
+Decision:
+[What was chosen - be specific about implementation]
+
+Alternatives Considered:
+1. [Option 1]
+   - Pros: [Key benefits]
+   - Cons: [Key drawbacks]
+   - Rejected because: [Specific reason]
+
+2. [Option 2]
+   - Pros: [Key benefits]
+   - Cons: [Key drawbacks]
+   - Rejected because: [Specific reason]
+
+Rationale:
+- [Key reason 1 for chosen approach]
+- [Key reason 2 for chosen approach]
+- [Key reason 3 for chosen approach]
+
+Consequences:
+Positive:
+  - [Expected benefit 1]
+  - [Expected benefit 2]
+
+Negative/Tradeoffs:
+  - [Known tradeoff 1]
+  - [Known tradeoff 2]
+
+Implementation Notes:
+- [Key implementation detail 1]
+- [Key implementation detail 2]
+- [Any gotchas or maintenance considerations]
+
+Date: YYYY-MM-DD
+Ticket: [Jira key]
+Author: [Your name or "Claude Sonnet 4.5"]
+"""
+```
+
+**Simple Format (ACCEPTABLE for straightforward decisions):**
+
+```python
+"""
+ARCHITECTURAL DECISION: [Short Title]
+
+Context: [Why this decision was needed]
+Decision: [What was chosen]
+Alternatives: [Other options considered]
+Rationale: [Why this choice over alternatives]
+Date: YYYY-MM-DD
+Ticket: [Jira key]
+"""
+```
+
+**Guidance on Format Selection:**
+
+Use **Enhanced Format** for:
+- Choosing between libraries/frameworks
+- Selecting architectural patterns
+- Migration from deprecated dependencies
+- Performance vs simplicity tradeoffs
+- Decisions that affect multiple components
+- Decisions with significant long-term impact
+
+Use **Simple Format** for:
+- Minor implementation choices
+- Obvious technical decisions
+- Decisions with limited scope
+- Quick tactical choices
+
+**Placement:**
 - Place at top of files with significant architectural choices
-- Examples of significant decisions:
-  - Choosing between libraries/frameworks
-  - Selecting architectural patterns
-  - Retry/fallback strategies
-  - Performance vs simplicity tradeoffs
-  - Migration from deprecated dependencies
+- Reference decision records in related files if needed
+- Keep decision records close to the code they affect
+
+**Examples of Significant Decisions:**
+- Choosing between libraries/frameworks
+- Selecting architectural patterns (MVC, Repository, etc.)
+- Retry/fallback strategies
+- Performance vs simplicity tradeoffs
+- Migration from deprecated dependencies
+- API versioning strategies
+- Data persistence approaches
+- Error handling philosophies
 
 ### Phase 2: Implementation (Writing the code)
 
@@ -195,19 +282,101 @@ Post concise Jira comment when core implementation complete:
 - [ ] Are there any security concerns?
 - [ ] Would a new developer understand this code easily?
 
-**3.2 Run Tests**
+**3.2 Run Unit Tests**
 
 - Execute all new tests
 - Run existing test suite to ensure no regressions
 - Check code coverage
 
-**3.3 Integration Check**
+**3.3 Integration Testing**
+
+Identify and test integration points:
+
+**API Integrations:**
+- External API calls (verify with actual endpoints if possible)
+- Mock responses for third-party services
+- Error handling for network failures
+- Timeout and retry mechanisms
+- Authentication and authorization flows
+
+**CLI Testing:**
+- Run CLI commands with various inputs
+- Test help messages and argument parsing
+- Verify output formatting
+- Test error messages and exit codes
+- Test interactive prompts (if applicable)
+
+**Database Integration:**
+- Test database connections
+- Verify schema changes (if applicable)
+- Test data persistence and retrieval
+- Test transactions and rollbacks
+- Test connection pooling and cleanup
+
+**File I/O:**
+- Test file creation, reading, writing
+- Verify permissions and error handling
+- Test with various file formats
+- Test with missing/corrupted files
+- Test cleanup of temporary files
+
+**End-to-End Flows:**
+- Test complete user workflows
+- Verify data flows through system
+- Test edge cases and error paths
+- Test concurrent operations (if applicable)
+- Test with realistic data volumes
+
+**Document Integration Test Results:**
+```markdown
+Integration Testing Summary:
+- CLI tested: [list commands tested]
+- API endpoints: [endpoints tested or mocked]
+- Database: [operations tested]
+- Files: [file operations tested]
+- End-to-end: [workflows tested]
+- Issues found: [list any issues]
+- Resolution: [how issues were resolved]
+```
+
+**3.4 Pre-existing Test Failures**
+
+When running test suite:
+
+**If pre-existing tests fail (unrelated to your changes):**
+1. Verify failures existed before your changes:
+   ```bash
+   git stash
+   pytest tests/
+   git stash pop
+   ```
+2. Document which tests failed:
+   - Test names
+   - Failure reasons (e.g., "missing psycopg2 dependency", "missing API keys")
+   - Evidence they pre-existed
+3. Note in completion report (NOT blocking):
+   ```markdown
+   ## Pre-existing Test Failures (Not Introduced)
+   - test_database.py::test_connection: Missing psycopg2 dependency
+   - test_integration.py::test_api: Missing API keys in test fixtures
+
+   These failures existed before changes and are not blocking.
+   Recommend creating separate ticket to address test infrastructure.
+   ```
+
+**If new test failures introduced by your changes:**
+1. MUST fix before proceeding (blocking)
+2. Cannot create PR with new failures
+3. Debug and resolve all test regressions
+4. Re-run full test suite to confirm fix
+
+**3.5 Integration Check**
 
 - Does new code integrate cleanly with existing code?
 - Are existing patterns followed?
 - Is the codebase more maintainable than before?
 
-**3.4 Milestone Update: Tests Passing**
+**3.6 Milestone Update: Tests Passing**
 Post concise Jira comment when tests complete:
 
 ```markdown
@@ -265,7 +434,27 @@ Post concise Jira comment when tests complete:
 The skill produces an execution plan and guides implementation:
 
 ```markdown
-# Development Execution Plan: [Task Description]
+# Development Execution Plan: [Jira Key - Task Title]
+
+## Phase 0: Task Context (from Jira)
+
+### Ticket Information
+
+- **Jira Key**: [Jira key]
+- **Title**: [Ticket title]
+- **Description**: [Ticket description summary]
+- **Status**: [Current status]
+
+### Acceptance Criteria
+
+- [Criterion 1]
+- [Criterion 2]
+- [...]
+
+### Investigation Report (if available)
+
+- [Link to investigation report in Jira]
+- [Key findings from investigation]
 
 ## Phase 1: Analysis & Design
 
@@ -367,10 +556,9 @@ Principles applied: [...]
 
 ## Arguments
 
-| Argument           | Required | Description                        | Example          |
-| ------------------ | -------- | ---------------------------------- | ---------------- |
-| `task_description` | Yes      | Clear description of what to build | `"Add JWT auth"` |
-| `jira_key`         | No       | Jira ticket reference              | `SOC-15`         |
+| Argument   | Required | Description                     | Example  |
+| ---------- | -------- | ------------------------------- | -------- |
+| `jira_key` | Yes      | The Jira issue key to implement | `SOC-15` |
 
 ## Execution Principles
 
@@ -540,7 +728,7 @@ This skill helps you build it right the first time.
 Complete workflow:
 
 1. `/02-start-task SOC-15` - Begin work on ticket, Jira → "In Progress"
-2. `/03-dev-execute "Add JWT authentication" SOC-15` - Build the feature using best practices
+2. `/03-dev-execute SOC-15` - Fetch ticket from Jira, build the feature using best practices
 3. Review the implementation against checklist
 4. Run tests
 5. `/04-reconcile-work SOC-15` - Optional: Verify alignment with requirements
@@ -549,6 +737,8 @@ Complete workflow:
 8. `/07-complete-task` - Merge PR, Jira → "Done"
 
 This ensures disciplined development from start to finish with proper code review and SDLC practices.
+
+**Note**: The task description and requirements are now fetched directly from the Jira ticket, ensuring single source of truth and eliminating redundant parameters.
 
 ## Notes
 
