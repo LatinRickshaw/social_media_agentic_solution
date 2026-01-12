@@ -8,15 +8,21 @@ Single Responsibility: UI/UX only - delegates generation to SocialMediaGenerator
 """
 
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-import streamlit as st
+# Add project root to Python path (must be done before importing src modules)
+_project_root = Path(__file__).resolve().parent.parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
 
-from src.core.brand_voice import BrandVoice
-from src.core.config import PLATFORM_SPECS
-from src.core.generator import SocialMediaGenerator
-from src.data.database import Database
+import streamlit as st  # noqa: E402
+
+from src.core.brand_voice import BrandVoice  # noqa: E402
+from src.core.config import PLATFORM_SPECS  # noqa: E402
+from src.core.generator import SocialMediaGenerator  # noqa: E402
+from src.data.database import Database  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
