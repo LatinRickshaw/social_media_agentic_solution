@@ -62,7 +62,9 @@ def test_generator_initialization():
 
 def test_generator_initialization_missing_api_keys():
     """Test that generator fails without API keys"""
-    with patch.dict(os.environ, {}, clear=True):
+    with patch("src.core.generator.Config") as mock_config:
+        mock_config.OPENAI_API_KEY = None
+        mock_config.GOOGLE_API_KEY = "fake-key"
         with pytest.raises(ValueError, match="OPENAI_API_KEY not configured"):
             SocialMediaGenerator()
 

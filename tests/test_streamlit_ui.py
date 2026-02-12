@@ -66,8 +66,19 @@ class TestSessionState:
     @patch("src.ui.streamlit_app.st")
     def test_initialize_session_state(self, mock_st):
         """Test session state variables are initialized correctly"""
-        # Mock session_state as a dictionary
-        mock_st.session_state = {}
+
+        # Use a class that supports both attribute access and 'in' operator
+        class MockSessionState:
+            def __contains__(self, key):
+                return hasattr(self, key)
+
+            def __getitem__(self, key):
+                return getattr(self, key)
+
+            def __setitem__(self, key, value):
+                setattr(self, key, value)
+
+        mock_st.session_state = MockSessionState()
 
         initialize_session_state()
 

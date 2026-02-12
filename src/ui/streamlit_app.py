@@ -136,7 +136,7 @@ def get_character_count_status(content: str, limit: int) -> tuple:
 
     if count > limit:
         return count, "error"
-    elif count > limit * 0.9:  # Warning at 90%
+    elif limit > count > limit * 0.9:  # Warning at 90-99%
         return count, "warning"
     else:
         return count, "ok"

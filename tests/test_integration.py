@@ -14,7 +14,16 @@ def generator():
     return SocialMediaGenerator()
 
 
-def test_end_to_end_post_generation_with_brand_guidelines(generator):
+@pytest.fixture
+def mock_image_prompt_response():
+    """Mock response for image prompt generation"""
+    response = MagicMock()
+    response.choices = [MagicMock()]
+    response.choices[0].message.content = "A professional image depicting the topic"
+    return response
+
+
+def test_end_to_end_post_generation_with_brand_guidelines(generator, mock_image_prompt_response):
     """Test complete post generation flow with brand guidelines"""
     # Mock OpenAI responses
     mock_content_response = MagicMock()
@@ -30,7 +39,7 @@ def test_end_to_end_post_generation_with_brand_guidelines(generator):
         patch.object(
             generator.openai_client.chat.completions,
             "create",
-            side_effect=[mock_content_response, mock_hashtag_response],
+            side_effect=[mock_content_response, mock_hashtag_response, mock_image_prompt_response],
         ),
         patch.object(generator, "_generate_image") as mock_image,
     ):
@@ -59,7 +68,7 @@ def test_end_to_end_post_generation_with_brand_guidelines(generator):
         assert len(brand_voice) > 0
 
 
-def test_platform_specific_brand_voice_application(generator):
+def test_platform_specific_brand_voice_application(generator, mock_image_prompt_response):
     """Test that each platform gets appropriate brand voice"""
     platforms = ["linkedin", "twitter", "facebook", "nextdoor"]
 
@@ -75,7 +84,8 @@ def test_platform_specific_brand_voice_application(generator):
         patch.object(
             generator.openai_client.chat.completions,
             "create",
-            side_effect=[mock_content_response, mock_hashtag_response] * len(platforms),
+            side_effect=[mock_content_response, mock_hashtag_response, mock_image_prompt_response]
+            * len(platforms),
         ),
         patch.object(generator, "_generate_image") as mock_image,
     ):
@@ -90,7 +100,7 @@ def test_platform_specific_brand_voice_application(generator):
             assert platform.lower() in brand_voice.lower()
 
 
-def test_hashtag_limits_per_platform(generator):
+def test_hashtag_limits_per_platform(generator, mock_image_prompt_response):
     """Test that hashtag generation respects platform limits"""
     from src.core.config import PLATFORM_SPECS
 
@@ -115,7 +125,11 @@ def test_hashtag_limits_per_platform(generator):
             mock_hashtag_response.choices[0].message.content = ", ".join(
                 [f"Tag{i}" for i in range(max_hashtags + 5)]
             )
-            mock_create.side_effect = [mock_content_response, mock_hashtag_response]
+            mock_create.side_effect = [
+                mock_content_response,
+                mock_hashtag_response,
+                mock_image_prompt_response,
+            ]
 
             result = generator.generate_post("Test", platform)
 
@@ -123,7 +137,7 @@ def test_hashtag_limits_per_platform(generator):
             assert len(result["hashtags"]) <= max_hashtags
 
 
-def test_generate_all_platforms_integration(generator):
+def test_generate_all_platforms_integration(generator, mock_image_prompt_response):
     """Test generating posts for all platforms simultaneously"""
     mock_content_response = MagicMock()
     mock_content_response.choices = [MagicMock()]
@@ -137,7 +151,8 @@ def test_generate_all_platforms_integration(generator):
         patch.object(
             generator.openai_client.chat.completions,
             "create",
-            side_effect=[mock_content_response, mock_hashtag_response] * 4,
+            side_effect=[mock_content_response, mock_hashtag_response, mock_image_prompt_response]
+            * 4,
         ),
         patch.object(generator, "_generate_image") as mock_image,
     ):
@@ -157,7 +172,7 @@ def test_generate_all_platforms_integration(generator):
             assert "brand_voice" in result["metadata"]
 
 
-def test_custom_brand_voice_override(generator):
+def test_custom_brand_voice_override(generator, mock_image_prompt_response):
     """Test that custom brand voice overrides brand guidelines"""
     mock_content_response = MagicMock()
     mock_content_response.choices = [MagicMock()]
@@ -171,7 +186,7 @@ def test_custom_brand_voice_override(generator):
         patch.object(
             generator.openai_client.chat.completions,
             "create",
-            side_effect=[mock_content_response, mock_hashtag_response],
+            side_effect=[mock_content_response, mock_hashtag_response, mock_image_prompt_response],
         ),
         patch.object(generator, "_generate_image") as mock_image,
     ):
@@ -236,7 +251,7 @@ def test_error_recovery_in_generation_flow(generator):
             generator.generate_post("Test", "linkedin")
 
 
-def test_brand_voice_consistency_across_multiple_calls(generator):
+def test_brand_voice_consistency_across_multiple_calls(generator, mock_image_prompt_response):
     """Test that brand voice remains consistent across multiple generation calls"""
     mock_content_response = MagicMock()
     mock_content_response.choices = [MagicMock()]
@@ -250,7 +265,8 @@ def test_brand_voice_consistency_across_multiple_calls(generator):
         patch.object(
             generator.openai_client.chat.completions,
             "create",
-            side_effect=[mock_content_response, mock_hashtag_response] * 3,
+            side_effect=[mock_content_response, mock_hashtag_response, mock_image_prompt_response]
+            * 3,
         ),
         patch.object(generator, "_generate_image") as mock_image,
     ):
