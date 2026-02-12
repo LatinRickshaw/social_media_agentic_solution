@@ -87,6 +87,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_published ON generated_posts(published_at);
 CREATE INDEX IF NOT EXISTS idx_posts_jira ON generated_posts(jira_issue_key);
 CREATE INDEX IF NOT EXISTS idx_metrics_post ON performance_metrics(post_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_post ON post_feedback(post_id);
+CREATE INDEX IF NOT EXISTS idx_publishing_post ON publishing_log(post_id);
 
 -- Add update trigger for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
