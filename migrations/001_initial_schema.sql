@@ -1,5 +1,13 @@
--- Database Schema for Social Media Generator
--- PostgreSQL Database Schema
+-- Migration 001: Initial Schema
+-- Date: 2026-02-12
+-- Ticket: SOC-6
+-- Description: Creates the initial database schema for the social media generator.
+--              Includes all 5 core tables, indexes, and the updated_at trigger.
+--
+-- This migration is equivalent to src/data/schema.sql and serves as the
+-- baseline for tracking future schema changes.
+--
+-- To apply: psql -d social_media_gen -f migrations/001_initial_schema.sql
 
 -- Main posts table
 CREATE TABLE IF NOT EXISTS generated_posts (

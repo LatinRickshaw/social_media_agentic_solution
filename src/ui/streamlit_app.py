@@ -441,11 +441,15 @@ def approve_post(platform: str):
                 user_prompt=post_data["metadata"].get("user_prompt", ""),
                 platform=platform,
                 content=post_data["content"],
-                hashtags=post_data.get("hashtags", []),
                 image_path=post_data.get("image_path"),
                 image_prompt=post_data.get("image_prompt"),
                 status="approved",
-                metadata=post_data.get("metadata"),
+            )
+
+            # Save approval feedback
+            db.save_feedback(
+                post_id=post_id,
+                feedback_type="approved_as_is",
                 created_by="streamlit_user",
             )
 
@@ -480,18 +484,15 @@ def reject_post(platform: str):
                     user_prompt=post_data["metadata"].get("user_prompt", ""),
                     platform=platform,
                     content=post_data["content"],
-                    hashtags=post_data.get("hashtags", []),
                     image_path=post_data.get("image_path"),
                     image_prompt=post_data.get("image_prompt"),
                     status="rejected",
-                    metadata=post_data.get("metadata"),
-                    created_by="streamlit_user",
                 )
 
                 # Save feedback
                 db.save_feedback(
                     post_id=post_id,
-                    feedback_type="rejection",
+                    feedback_type="rejected",
                     rejection_reason=rejection_reason,
                     created_by="streamlit_user",
                 )

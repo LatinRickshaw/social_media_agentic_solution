@@ -50,6 +50,7 @@ generated_images/
 *.db
 *.sqlite
 *.sqlite3
+backups/
 
 # Logs
 *.log
