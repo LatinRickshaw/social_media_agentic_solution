@@ -66,6 +66,12 @@ social-media-generator/
 ├── generated_images/      # Generated images
 ├── requirements.txt       # Python dependencies
 ├── .env.example           # Environment template
+├── Dockerfile             # App container image
+├── docker-compose.yml     # Production compose config
+├── docker-compose.override.yml  # Local dev overrides
+├── .dockerignore          # Docker build exclusions
+├── nginx/
+│   └── nginx.conf         # Reverse proxy config
 └── README.md
 ```
 
@@ -116,6 +122,54 @@ pytest tests/ -v
 7. **Start the UI**
 ```bash
 streamlit run src/ui/streamlit_app.py
+```
+
+## Docker
+
+As an alternative to the manual setup above, you can run the entire stack with Docker.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose v2+
+
+### Local Development
+
+```bash
+cp .env.example .env
+# Edit .env with your API keys and DB password (DB_HOST value doesn't matter — Docker overrides it)
+
+docker compose up --build
+```
+
+This automatically loads `docker-compose.override.yml`, which:
+- Bind-mounts `src/` and `config/` for live code reloading
+- Exposes PostgreSQL on port 5432 for direct access
+- Sets `DEBUG=true`
+
+The app is available at **http://localhost** (Nginx reverse proxy on port 80).
+
+### Production / Cloud
+
+```bash
+docker compose -f docker-compose.yml up -d
+```
+
+Specifying only `docker-compose.yml` skips the dev overrides — no bind mounts, no exposed DB port.
+
+### Notes
+
+- The database schema is **auto-initialized** on first run via the migration file
+- Your `.env` file is passed to the app container; `DB_HOST` is overridden to `db` (the Postgres container) by the compose config
+- Generated images are stored in a named Docker volume (`generated_images`)
+
+### Teardown
+
+```bash
+# Stop containers (data persists)
+docker compose down
+
+# Stop and destroy all data (DB + images)
+docker compose down -v
 ```
 
 ## Environment Variables
@@ -409,6 +463,22 @@ psql -h localhost -U postgres -d social_media_gen
 ```bash
 # Verify environment variables are loaded
 python -c "from src.core.config import Config; print(Config.validate())"
+```
+
+### Docker Issues
+```bash
+# Rebuild from scratch (no cache)
+docker compose build --no-cache
+
+# View logs for a specific service
+docker compose logs app
+docker compose logs db
+
+# Shell into the running app container
+docker compose exec app bash
+
+# Check if DB is accepting connections
+docker compose exec db pg_isready
 ```
 
 ### Image Generation Issues

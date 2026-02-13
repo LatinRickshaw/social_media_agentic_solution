@@ -69,3 +69,6 @@ celerybeat.pid
 *.tmp
 *.bak
 *.cache
+
+# Nginx SSL certs
+nginx/certs/

@@ -1,0 +1,18 @@
+# Local development overrides (auto-loaded by docker compose)
+# For cloud/production, run: docker compose -f docker-compose.yml up -d
+services:
+  app:
+    build:
+      context: .
+      target: base
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config
+      - ./generated_images:/app/generated_images
+    environment:
+      - DEBUG=true
+      - ENV=development
+
+  db:
+    ports:
+      - "${DB_PORT:-5432}:5432"
