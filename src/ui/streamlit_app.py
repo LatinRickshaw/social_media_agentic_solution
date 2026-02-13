@@ -20,7 +20,7 @@ if str(_project_root) not in sys.path:
 import streamlit as st  # noqa: E402
 
 from src.core.brand_voice import BrandVoice  # noqa: E402
-from src.core.config import PLATFORM_SPECS  # noqa: E402
+from src.core.config import PLATFORM_SPECS, Config  # noqa: E402
 from src.core.generator import SocialMediaGenerator  # noqa: E402
 from src.data.database import Database  # noqa: E402
 
@@ -516,6 +516,12 @@ def main():
     """
     # Initialize
     initialize_session_state()
+
+    # Validate configuration and warn about missing keys
+    validations = Config.validate()
+    missing = [name for name, ok in validations.items() if not ok]
+    if missing:
+        st.warning(f"Missing configuration: {', '.join(missing)}. Check your .env file.")
 
     # Header
     st.title("📱 Social Media Post Generator")

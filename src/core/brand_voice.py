@@ -136,10 +136,11 @@ class BrandVoice:
 
     def generate_hashtags(self, platform: str, topic: str, count: Optional[int] = None) -> list:
         """
-        Generate appropriate hashtags based on platform and topic.
+        Generate simple hashtags based on platform and topic (offline fallback).
 
-        NOTE: This is a fallback/simple implementation. For production use,
-        prefer the _generate_hashtags() method in the generator which uses GPT-4.
+        This is intentionally kept as a lightweight, non-API fallback for when
+        the GPT-4 based ``SocialMediaGenerator._generate_hashtags()`` is unavailable
+        (e.g. no API key, rate-limited, or running in offline/test mode).
 
         Args:
             platform: Target platform

@@ -2,7 +2,7 @@
 
 > Multi-platform social media content generation using best-of-breed AI models
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+%20(tested%20on%203.13)-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
@@ -30,7 +30,7 @@ A production-ready system that generates platform-optimized social media posts w
 
 ```
 Frontend/Interface:    Streamlit (Phase 1) → React + FastAPI (Phase 2)
-Orchestration:         LangChain + Python 3.10+
+Orchestration:         Python 3.10+
 AI Models:             OpenAI GPT-4, Google Gemini Imagen
 Database:              PostgreSQL
 Storage:               AWS S3 / CloudFlare R2
@@ -49,15 +49,10 @@ social-media-generator/
 │   │   ├── config.py      # Configuration
 │   │   └── prompt_templates.py
 │   ├── data/              # Database interface
-│   │   ├── database.py
-│   │   └── schema.sql
-│   ├── quality/           # Quality checking
-│   │   └── checker.py
-│   ├── automation/        # Auto-publish logic
-│   │   └── decision_engine.py
-│   ├── publishing/        # Platform publishers
-│   │   ├── publisher.py
-│   │   └── metrics_collector.py
+│   │   └── database.py
+│   ├── quality/           # Quality checking (planned)
+│   ├── automation/        # Auto-publish logic (planned)
+│   ├── publishing/        # Platform publishers (planned)
 │   └── ui/                # User interface
 │       └── streamlit_app.py
 ├── tests/                 # Test suite
@@ -354,16 +349,16 @@ See [src/core/prompt_templates.py](src/core/prompt_templates.py) for full templa
 - [x] OpenAI & Gemini integration
 - [x] CLI testing interface
 
-### 🔄 Phase 2: Review Interface (Weeks 3-4)
-- [ ] Streamlit web interface
-- [ ] Post review and editing
-- [ ] Approve/reject workflow
-- [ ] Session state management
+### ✅ Phase 2: Review Interface (Weeks 3-4)
+- [x] Streamlit web interface
+- [x] Post review and editing
+- [x] Approve/reject workflow
+- [x] Session state management
 
-### ⏳ Phase 3: Database & Logging (Weeks 4-5)
+### ✅ Phase 3: Database & Logging (Weeks 4-5)
 - [x] Database schema
 - [x] Database interface
-- [ ] Migration scripts
+- [x] Migration scripts
 - [ ] Analytics queries
 
 ### ⏳ Phase 4: Publishing Integration (Weeks 5-7)
@@ -407,7 +402,7 @@ The system uses PostgreSQL with the following main tables:
 - **quality_checks** - Quality check results
 - **publishing_log** - Publishing attempts and results
 
-See [src/data/schema.sql](src/data/schema.sql) for complete schema.
+See [migrations/001_initial_schema.sql](migrations/001_initial_schema.sql) for complete schema.
 
 ## API Rate Limits
 
@@ -488,8 +483,9 @@ docker compose exec db pg_isready
 
 ## Documentation
 
-- [Project Specification](social-media-generator-project-spec.md) - Complete project spec
-- [Atlassian MCP](Atlassian_MCP.md) - Jira integration details
+- [Project Specification](docs/project-spec.md) - Complete project spec
+- [Atlassian MCP](docs/Atlassian_MCP.md) - Jira integration details
+- [Installation Guide](INSTALLATION.md) - Setup instructions
 - [Brand Guidelines](config/brand_guidelines.yaml) - Brand voice configuration
 
 ## Roadmap
@@ -517,7 +513,6 @@ MIT License - see LICENSE file for details
 
 - OpenAI GPT-4 for content generation
 - Google Gemini for image generation
-- LangChain for AI orchestration
 - Streamlit for rapid UI development
 
 ---

@@ -63,7 +63,9 @@ def create_tables():
         cur = conn.cursor()
 
         # Read schema file
-        schema_path = os.path.join(os.path.dirname(__file__), "..", "src", "data", "schema.sql")
+        schema_path = os.path.join(
+            os.path.dirname(__file__), "..", "migrations", "001_initial_schema.sql"
+        )
 
         print(f"\nReading schema from: {schema_path}")
 

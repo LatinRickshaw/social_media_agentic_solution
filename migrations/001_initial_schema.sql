@@ -4,8 +4,8 @@
 -- Description: Creates the initial database schema for the social media generator.
 --              Includes all 5 core tables, indexes, and the updated_at trigger.
 --
--- This migration is equivalent to src/data/schema.sql and serves as the
--- baseline for tracking future schema changes.
+-- This is the single source of truth for the database schema and serves as
+-- the baseline for tracking future schema changes.
 --
 -- To apply: psql -d social_media_gen -f migrations/001_initial_schema.sql
 

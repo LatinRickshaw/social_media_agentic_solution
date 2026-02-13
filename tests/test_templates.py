@@ -1,10 +1,13 @@
 """
-Test script for platform-specific templates and optimization.
-Tests templates with various sample prompts to evaluate quality and appropriateness.
+Tests for platform-specific templates and optimization.
+Validates templates have proper structure, accept sample prompts,
+differentiate per platform, and integrate brand voice.
 """
 
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -12,38 +15,27 @@ sys.path.insert(0, str(project_root))
 
 from src.core.prompt_templates import PLATFORM_TEMPLATES  # noqa: E402
 
-
-def test_template_structure():
-    """Test that all required templates exist and have proper structure"""
-    required_platforms = ["linkedin", "twitter", "facebook", "nextdoor"]
-
-    print("=" * 70)
-    print("  TEMPLATE STRUCTURE TEST")
-    print("=" * 70)
-
-    for platform in required_platforms:
-        if platform in PLATFORM_TEMPLATES:
-            print(f"✓ {platform}: Template exists")
-
-            # Check for required template variables
-            template = PLATFORM_TEMPLATES[platform]
-            required_vars = ["{topic}", "{context}", "{brand_voice}"]
-
-            for var in required_vars:
-                if var in template:
-                    print(f"  ✓ Contains {var}")
-                else:
-                    print(f"  ✗ Missing {var}")
-        else:
-            print(f"✗ {platform}: Template missing!")
-
-    print()
+REQUIRED_PLATFORMS = ["linkedin", "twitter", "facebook", "nextdoor"]
 
 
-def test_sample_prompts():
-    """Test templates with sample prompts"""
+class TestTemplateStructure:
+    """Test that all required templates exist and have proper structure."""
 
-    sample_prompts = [
+    def test_all_platforms_have_templates(self):
+        for platform in REQUIRED_PLATFORMS:
+            assert platform in PLATFORM_TEMPLATES, f"Template missing for {platform}"
+
+    @pytest.mark.parametrize("platform", REQUIRED_PLATFORMS)
+    def test_template_contains_required_variables(self, platform):
+        template = PLATFORM_TEMPLATES[platform]
+        for var in ["{topic}", "{context}", "{brand_voice}"]:
+            assert var in template, f"{platform} template missing variable {var}"
+
+
+class TestSamplePrompts:
+    """Test templates render correctly with sample data."""
+
+    SAMPLE_PROMPTS = [
         {
             "topic": "Announcing our new AI-powered feature",
             "context": "Focus on productivity and collaboration benefits",
@@ -61,100 +53,48 @@ def test_sample_prompts():
         },
     ]
 
-    print("=" * 70)
-    print("  SAMPLE PROMPT TEST")
-    print("=" * 70)
-
-    for idx, prompt in enumerate(sample_prompts, 1):
-        print(f"\n--- Sample Prompt {idx} ---")
-        print(f"Topic: {prompt['topic']}")
-        print(f"Context: {prompt['context']}")
-        print(f"Brand Voice: {prompt['brand_voice']}")
-        print()
-
-        for platform, template in PLATFORM_TEMPLATES.items():
-            formatted = template.format(**prompt)
-            print(f"▸ {platform.upper()}:")
-            print(f"  Template length: {len(formatted)} characters")
-
-            # Check if template provides clear guidance
-            guidance_keywords = ["Requirements:", "Format:", "tone", "hashtag"]
-            found = [kw for kw in guidance_keywords if kw.lower() in formatted.lower()]
-            print(f"  Guidance elements: {', '.join(found)}")
-            print()
-
-
-def analyze_platform_differentiation():
-    """Analyze how templates differ per platform"""
-
-    print("=" * 70)
-    print("  PLATFORM DIFFERENTIATION ANALYSIS")
-    print("=" * 70)
-
-    platforms = ["linkedin", "twitter", "facebook", "nextdoor"]
-
-    for platform in platforms:
+    @pytest.mark.parametrize("platform", REQUIRED_PLATFORMS)
+    def test_templates_format_without_error(self, platform):
         template = PLATFORM_TEMPLATES[platform]
+        for prompt in self.SAMPLE_PROMPTS:
+            formatted = template.format(**prompt)
+            assert len(formatted) > 0
 
-        print(f"\n{platform.upper()}:")
-        print("-" * 40)
-
-        # Extract tone guidance
-        if "tone" in template.lower():
-            lines = [line for line in template.split("\n") if "tone" in line.lower()]
-            for line in lines:
-                print(f"  Tone: {line.strip()}")
-
-        # Extract length guidance
-        if "word" in template.lower() or "character" in template.lower():
-            lines = [
-                line
-                for line in template.split("\n")
-                if "word" in line.lower() or "character" in line.lower()
-            ]
-            for line in lines:
-                print(f"  Length: {line.strip()}")
-
-        # Extract hashtag guidance
-        if "hashtag" in template.lower():
-            lines = [line for line in template.split("\n") if "hashtag" in line.lower()]
-            for line in lines:
-                print(f"  Hashtags: {line.strip()}")
+    @pytest.mark.parametrize("platform", REQUIRED_PLATFORMS)
+    def test_formatted_templates_contain_guidance(self, platform):
+        template = PLATFORM_TEMPLATES[platform]
+        formatted = template.format(**self.SAMPLE_PROMPTS[0])
+        guidance_keywords = ["requirements", "format", "tone", "hashtag"]
+        found = [kw for kw in guidance_keywords if kw in formatted.lower()]
+        assert len(found) > 0, f"{platform} template lacks guidance keywords"
 
 
-def check_brand_voice_integration():
-    """Check if templates properly integrate brand voice parameter"""
+class TestPlatformDifferentiation:
+    """Test that templates are meaningfully different across platforms."""
 
-    print("\n" + "=" * 70)
-    print("  BRAND VOICE INTEGRATION CHECK")
-    print("=" * 70)
+    def test_templates_are_unique(self):
+        templates = [PLATFORM_TEMPLATES[p] for p in REQUIRED_PLATFORMS]
+        assert len(set(templates)) == len(templates), "Some platform templates are identical"
 
-    for platform, template in PLATFORM_TEMPLATES.items():
-        has_brand_voice = "{brand_voice}" in template
-        references_voice = "voice" in template.lower() or "tone" in template.lower()
-
-        print(f"\n{platform.upper()}:")
-        print(f"  Has brand_voice parameter: {'✓' if has_brand_voice else '✗'}")
-        print(f"  References voice/tone: {'✓' if references_voice else '✗'}")
-
-        if has_brand_voice:
-            # Show context around brand_voice usage
-            lines = template.split("\n")
-            for i, line in enumerate(lines):
-                if "{brand_voice}" in line:
-                    print(f"  Usage: {line.strip()}")
+    @pytest.mark.parametrize("platform", REQUIRED_PLATFORMS)
+    def test_template_references_tone(self, platform):
+        template = PLATFORM_TEMPLATES[platform].lower()
+        assert (
+            "tone" in template or "voice" in template
+        ), f"{platform} template should reference tone or voice"
 
 
-if __name__ == "__main__":
-    print("\n" + "=" * 70)
-    print("  PLATFORM TEMPLATE TESTING SUITE")
-    print("=" * 70 + "\n")
+class TestBrandVoiceIntegration:
+    """Check that templates properly integrate the brand_voice parameter."""
 
-    test_template_structure()
-    test_sample_prompts()
-    analyze_platform_differentiation()
-    check_brand_voice_integration()
+    @pytest.mark.parametrize("platform", REQUIRED_PLATFORMS)
+    def test_brand_voice_parameter_present(self, platform):
+        assert "{brand_voice}" in PLATFORM_TEMPLATES[platform]
 
-    print("\n" + "=" * 70)
-    print("  TEST SUITE COMPLETE")
-    print("=" * 70 + "\n")
+    @pytest.mark.parametrize("platform", REQUIRED_PLATFORMS)
+    def test_brand_voice_value_appears_in_output(self, platform):
+        voice = "uniqueTestVoiceMarker"
+        formatted = PLATFORM_TEMPLATES[platform].format(
+            topic="test", context="test", brand_voice=voice
+        )
+        assert voice in formatted
