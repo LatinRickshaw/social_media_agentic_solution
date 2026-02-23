@@ -68,6 +68,10 @@ PLATFORM_SPECS: Dict[str, PlatformSpec] = {
 class Config:
     """Application configuration"""
 
+    # Anthropic
+    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+    ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-opus-4-6")
+
     # OpenAI
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4")
@@ -75,6 +79,7 @@ class Config:
 
     # Google Gemini
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    GEMINI_TEXT_MODEL = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.0-flash")
 
     # Database
     DB_HOST = os.getenv("DB_HOST", "localhost")
