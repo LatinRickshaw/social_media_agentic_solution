@@ -21,7 +21,7 @@ Author: Claude Sonnet 4.6
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 
@@ -94,7 +94,7 @@ class ProviderConfig:
         image: Provider used to generate the final image.
     """
 
-    content: Optional[TextProvider] = field(default=None)
-    hashtags: Optional[TextProvider] = field(default=None)
-    image_prompt: Optional[TextProvider] = field(default=None)
-    image: Optional[ImageProvider] = field(default=None)
+    content: Optional[TextProvider] = None
+    hashtags: Optional[TextProvider] = None
+    image_prompt: Optional[TextProvider] = None
+    image: Optional[ImageProvider] = None
