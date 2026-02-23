@@ -19,6 +19,8 @@ This skill conducts comprehensive code review of a pull request, implements reco
 
 ## What This Skill Does
 
+Once complete, it executes the command `say finished reviewing the pull request for the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.
+
 ### Phase 1: Fetch PR Details
 
 1. Identifies PR for current branch (or uses specified PR number) using GitHub MCP
@@ -29,6 +31,7 @@ This skill conducts comprehensive code review of a pull request, implements reco
 ### Phase 2: Automated Code Review
 
 Analyzes code changes comprehensively for:
+
 - **Critical Issues**: Missing dependencies, breaking changes, security concerns
 - **Code Quality**: Type safety, error handling, import organization
 - **Documentation**: README updates, docstrings, comments
@@ -58,10 +61,10 @@ Generates detailed review with categorized recommendations.
 
 ## Parameters
 
-| Parameter       | Required | Description                                 | Example           |
-| --------------- | -------- | ------------------------------------------- | ----------------- |
-| `pr_number`     | No       | PR number (auto-detected if not provided)   | `42`              |
-| `jira_key`      | No       | Jira ticket key to provide context          | `SOC-5`           |
+| Parameter   | Required | Description                               | Example |
+| ----------- | -------- | ----------------------------------------- | ------- |
+| `pr_number` | No       | PR number (auto-detected if not provided) | `42`    |
+| `jira_key`  | No       | Jira ticket key to provide context        | `SOC-5` |
 
 ## Workflow Steps
 

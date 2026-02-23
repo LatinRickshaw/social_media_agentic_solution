@@ -12,6 +12,7 @@ Automates the workflow for **preparing to begin** a development task:
 6. Transitions the Jira ticket to "In Progress" using the Atlassian MCP Server
 7. Adds a comment to the Jira ticket indicating work has started using the Atlassian MCP Server
 8. Analyzes ticket complexity and recommends `/01-investigate-task` if needed (non-blocking)
+9. Once complete, it executes the command `say finished starting the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.
 
 **After this skill completes, the user should use `/03-dev-execute` to actually implement the task.**
 
@@ -191,7 +192,6 @@ The skill will:
 **Typical workflow with clear separation of concerns:**
 
 1. **Setup Phase**: `/02-start-task SOC-5`
-
    - Creates branch `feature/SOC-5-description`
    - Transitions Jira ticket to "In Progress"
    - Adds comment to Jira
@@ -199,13 +199,11 @@ The skill will:
    - **STOPS HERE** - Does not implement anything
 
 2. **Optional Investigation Phase**: `/01-investigate-task SOC-5` (if recommended)
-
    - Only run if complexity indicators detected
    - User can skip if requirements are clear
    - Posts investigation findings to Jira
 
 3. **Implementation Phase**: `/03-dev-execute SOC-5`
-
    - Fetches requirements from Jira ticket
    - Uses investigation findings if available
    - Analyzes codebase

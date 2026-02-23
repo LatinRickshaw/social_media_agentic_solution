@@ -20,7 +20,7 @@ Performs deep technical investigation before starting implementation. Use this f
 
 ## What It Does
 
-This skill performs comprehensive technical investigation and posts findings to Jira WITHOUT transitioning the ticket. Use this BEFORE running `/02-start-task` for complex work.
+This skill performs comprehensive technical investigation and posts findings to Jira WITHOUT transitioning the ticket. Use this BEFORE running `/02-start-task` for complex work. Once complete, it executes the command `say finished investigating the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.
 
 ### 1. Fetch Ticket Details
 
@@ -97,7 +97,6 @@ Generates and posts to Jira using the Atlassian MCP server:
 #### Architectural Decisions Needed
 
 1. **Decision**: [What needs to be decided]
-
    - Option A: [Pros/Cons]
    - Option B: [Pros/Cons]
    - Recommendation: [X because Y]

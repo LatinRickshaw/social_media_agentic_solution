@@ -23,6 +23,8 @@ Merges an approved pull request and marks the Jira ticket as "Done". This is the
 
 ## What It Does
 
+Once complete, it executes the command `say finished completing the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.
+
 ### 1. PR Verification
 
 - Fetches PR details using GitHub MCP
@@ -144,6 +146,7 @@ Pull request has been merged and deployed.
 - **Link**: [Deployment URL]
 
 [Or if not yet deployed]
+
 - **Status**: ⏳ Pending deployment
 - **Next**: Will deploy in next release
 
