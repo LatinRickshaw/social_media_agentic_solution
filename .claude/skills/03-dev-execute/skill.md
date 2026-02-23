@@ -26,7 +26,7 @@ Guides the development of software features following engineering best practices
 
 ## What It Does
 
-This skill guides you through disciplined software development by:
+This skill guides you through disciplined software development by completing the following phases. Once complete, it executes the command `say finished executing the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.:
 
 ### Phase 0: Fetch Task Context (BEFORE any planning)
 
@@ -65,7 +65,6 @@ This skill guides you through disciplined software development by:
 **1.3 Design Planning**
 
 - Apply SOLID principles to the design:
-
   - **Single Responsibility**: What is the ONE thing each class/function does?
   - **Open/Closed**: How can this be extended without modification?
   - **Liskov Substitution**: Are any inheritance hierarchies safe?
@@ -155,6 +154,7 @@ Ticket: [Jira key]
 **Guidance on Format Selection:**
 
 Use **Enhanced Format** for:
+
 - Choosing between libraries/frameworks
 - Selecting architectural patterns
 - Migration from deprecated dependencies
@@ -163,17 +163,20 @@ Use **Enhanced Format** for:
 - Decisions with significant long-term impact
 
 Use **Simple Format** for:
+
 - Minor implementation choices
 - Obvious technical decisions
 - Decisions with limited scope
 - Quick tactical choices
 
 **Placement:**
+
 - Place at top of files with significant architectural choices
 - Reference decision records in related files if needed
 - Keep decision records close to the code they affect
 
 **Examples of Significant Decisions:**
+
 - Choosing between libraries/frameworks
 - Selecting architectural patterns (MVC, Repository, etc.)
 - Retry/fallback strategies
@@ -293,6 +296,7 @@ Post concise Jira comment when core implementation complete:
 Identify and test integration points:
 
 **API Integrations:**
+
 - External API calls (verify with actual endpoints if possible)
 - Mock responses for third-party services
 - Error handling for network failures
@@ -300,6 +304,7 @@ Identify and test integration points:
 - Authentication and authorization flows
 
 **CLI Testing:**
+
 - Run CLI commands with various inputs
 - Test help messages and argument parsing
 - Verify output formatting
@@ -307,6 +312,7 @@ Identify and test integration points:
 - Test interactive prompts (if applicable)
 
 **Database Integration:**
+
 - Test database connections
 - Verify schema changes (if applicable)
 - Test data persistence and retrieval
@@ -314,6 +320,7 @@ Identify and test integration points:
 - Test connection pooling and cleanup
 
 **File I/O:**
+
 - Test file creation, reading, writing
 - Verify permissions and error handling
 - Test with various file formats
@@ -321,6 +328,7 @@ Identify and test integration points:
 - Test cleanup of temporary files
 
 **End-to-End Flows:**
+
 - Test complete user workflows
 - Verify data flows through system
 - Test edge cases and error paths
@@ -328,8 +336,10 @@ Identify and test integration points:
 - Test with realistic data volumes
 
 **Document Integration Test Results:**
+
 ```markdown
 Integration Testing Summary:
+
 - CLI tested: [list commands tested]
 - API endpoints: [endpoints tested or mocked]
 - Database: [operations tested]
@@ -344,6 +354,7 @@ Integration Testing Summary:
 When running test suite:
 
 **If pre-existing tests fail (unrelated to your changes):**
+
 1. Verify failures existed before your changes:
    ```bash
    git stash
@@ -355,8 +366,10 @@ When running test suite:
    - Failure reasons (e.g., "missing psycopg2 dependency", "missing API keys")
    - Evidence they pre-existed
 3. Note in completion report (NOT blocking):
+
    ```markdown
    ## Pre-existing Test Failures (Not Introduced)
+
    - test_database.py::test_connection: Missing psycopg2 dependency
    - test_integration.py::test_api: Missing API keys in test fixtures
 
@@ -365,6 +378,7 @@ When running test suite:
    ```
 
 **If new test failures introduced by your changes:**
+
 1. MUST fix before proceeding (blocking)
 2. Cannot create PR with new failures
 3. Debug and resolve all test regressions
@@ -475,12 +489,10 @@ The skill produces an execution plan and guides implementation:
 ### Design
 
 - Classes/Functions needed:
-
   - `ClassName`: Responsibility - [single clear purpose]
   - `function_name`: Does [one thing]
 
 - SOLID considerations:
-
   - SRP: [how responsibilities are separated]
   - OCP: [extension points]
   - DIP: [abstractions to use]

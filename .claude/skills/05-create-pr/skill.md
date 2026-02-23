@@ -20,6 +20,8 @@ Commits your changes and creates a pull request for code review. This skill prep
 
 ## What It Does
 
+Once complete, it executes the command `say finished creating the pull request for the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.
+
 ### 1. Git Status Check
 
 - Runs `git status` to see what files changed

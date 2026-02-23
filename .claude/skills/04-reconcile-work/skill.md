@@ -20,7 +20,7 @@ Audits completed work against Jira ticket requirements to verify alignment and c
 
 ## What It Does
 
-This skill performs a comprehensive audit of work completed on the current branch against the Jira ticket requirements.
+This skill performs a comprehensive audit of work completed on the current branch against the Jira ticket requirements. Once complete, it executes the command `say finished reconciling the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.
 
 ### 1. Fetch Ticket Requirements
 
@@ -78,7 +78,6 @@ Creates detailed report:
 ### ✅ Completed Tasks (X/Y)
 
 1. [Task 1]: Completed as specified
-
    - Files: file1.py, file2.py
    - Commits: abc123, def456
 
@@ -96,7 +95,6 @@ Creates detailed report:
 ### ➕ Additional Work (Beyond Scope)
 
 1. [Feature X]: Added fallback placeholder system
-
    - Rationale: Graceful degradation
    - Files: file4.py
    - Impact: Low risk, improves UX
@@ -194,6 +192,7 @@ This ensures the reconciliation is documented in Jira (the source of truth) with
 ### Use /04-reconcile-work When:
 
 **REQUIRED for:**
+
 - Multi-day development (>3 days of work)
 - Multiple commits with scope changes
 - Work interrupted and resumed later
@@ -202,6 +201,7 @@ This ensures the reconciliation is documented in Jira (the source of truth) with
 - First time implementing this type of feature
 
 **RECOMMENDED for:**
+
 - Work with any scope additions/changes
 - Unclear initial requirements (clarified during work)
 - Want confidence before creating PR
@@ -210,6 +210,7 @@ This ensures the reconciliation is documented in Jira (the source of truth) with
 - Cross-cutting changes affecting multiple modules
 
 **SKIP for:**
+
 - Single commit, simple fix
 - Obvious 1:1 mapping to ticket requirements
 - Already confident all requirements met
@@ -246,6 +247,7 @@ More than 3 commits? ─── YES ──→ CONSIDER /04-reconcile-work
 ### Real-World Examples
 
 **SOC-14** (Migration task):
+
 - Single-commit migration
 - Clear requirements from deprecation notice
 - No scope changes
@@ -254,6 +256,7 @@ More than 3 commits? ─── YES ──→ CONSIDER /04-reconcile-work
 - **Rationale**: Simple, focused change with clear requirements
 
 **SOC-45** (Complex feature - hypothetical):
+
 - 5 days of work
 - 12 commits
 - Scope expanded (added CLI features beyond requirements)
@@ -262,6 +265,7 @@ More than 3 commits? ─── YES ──→ CONSIDER /04-reconcile-work
 - **Rationale**: Multi-day work with scope changes
 
 **SOC-28** (Bug fix - hypothetical):
+
 - 2-line change in error handler
 - Single commit
 - Obvious fix for reported issue
@@ -269,6 +273,7 @@ More than 3 commits? ─── YES ──→ CONSIDER /04-reconcile-work
 - **Rationale**: Trivial fix with no scope concerns
 
 **SOC-67** (Refactoring - hypothetical):
+
 - 3 days of work
 - 8 commits
 - Extract service classes
