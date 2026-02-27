@@ -627,17 +627,6 @@ Examples:
     args = parser.parse_args()
 
     # Resolve per-element providers (CLI arg overrides env-var default)
-    from src.core.providers.registry import get_image_provider, get_text_provider
-
-    provider_config = ProviderConfig(
-        content=get_text_provider(args.content_provider or Config.DEFAULT_CONTENT_PROVIDER),
-        hashtags=get_text_provider(args.hashtag_provider or Config.DEFAULT_HASHTAG_PROVIDER),
-        image_prompt=get_text_provider(
-            args.image_prompt_provider or Config.DEFAULT_IMAGE_PROMPT_PROVIDER
-        ),
-        image=get_image_provider(args.image_provider or Config.DEFAULT_IMAGE_PROVIDER),
-    )
-
     # Display header
     print("\n" + "=" * 70)
     print("  SOCIAL MEDIA GENERATOR - CLI")
@@ -657,6 +646,20 @@ Examples:
     print("\n" + "-" * 70 + "\n")
 
     try:
+        # Resolve per-element providers (CLI arg overrides env-var default).
+        # Kept inside try so a bad Config.DEFAULT_*_PROVIDER env-var surfaces
+        # as the clean ValueError message rather than an unhandled exception.
+        from src.core.providers.registry import get_image_provider, get_text_provider
+
+        provider_config = ProviderConfig(
+            content=get_text_provider(args.content_provider or Config.DEFAULT_CONTENT_PROVIDER),
+            hashtags=get_text_provider(args.hashtag_provider or Config.DEFAULT_HASHTAG_PROVIDER),
+            image_prompt=get_text_provider(
+                args.image_prompt_provider or Config.DEFAULT_IMAGE_PROMPT_PROVIDER
+            ),
+            image=get_image_provider(args.image_provider or Config.DEFAULT_IMAGE_PROVIDER),
+        )
+
         # Initialize generator
         generator = SocialMediaGenerator(provider_config=provider_config)
 
