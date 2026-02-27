@@ -42,7 +42,7 @@ Once complete, it executes the command `say finished creating the pull request f
 
 ### 3. Git Commit
 
-- Generates a commit message following the format:
+- Generates a commit message following the format, do not provide any attribution to Claude in the commit message, as this is a personal commit by the user:
 
   ```
   [JIRA-KEY] Brief description
