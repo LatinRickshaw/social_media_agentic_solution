@@ -6,6 +6,7 @@ from src.core.providers.gemini_image import GeminiImageProvider
 from src.core.providers.gemini_text import GeminiTextProvider
 from src.core.providers.openai_image import OpenAIImageProvider
 from src.core.providers.openai_text import OpenAITextProvider
+from src.core.providers.registry import get_image_provider, get_text_provider, list_providers
 
 __all__ = [
     "TextProvider",
@@ -16,4 +17,7 @@ __all__ = [
     "GeminiTextProvider",
     "GeminiImageProvider",
     "OpenAIImageProvider",
+    "get_text_provider",
+    "get_image_provider",
+    "list_providers",
 ]
