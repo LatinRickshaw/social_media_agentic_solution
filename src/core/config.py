@@ -4,8 +4,11 @@ Handles environment variables and platform specifications.
 """
 
 import os
-from typing import Dict, Tuple, TypedDict
+from typing import TYPE_CHECKING, Dict, Tuple, TypedDict
 from dotenv import load_dotenv
+
+if TYPE_CHECKING:
+    from src.core.providers.base import ProviderConfig
 
 # Load environment variables
 load_dotenv()
@@ -85,6 +88,12 @@ class Config:
     # OpenAI Image
     OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "dall-e-3")
 
+    # Provider selection defaults — which provider handles each generation task
+    DEFAULT_CONTENT_PROVIDER = os.getenv("DEFAULT_CONTENT_PROVIDER", "openai")
+    DEFAULT_HASHTAG_PROVIDER = os.getenv("DEFAULT_HASHTAG_PROVIDER", "openai")
+    DEFAULT_IMAGE_PROMPT_PROVIDER = os.getenv("DEFAULT_IMAGE_PROMPT_PROVIDER", "openai")
+    DEFAULT_IMAGE_PROVIDER = os.getenv("DEFAULT_IMAGE_PROVIDER", "gemini")
+
     # Database
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = int(os.getenv("DB_PORT", "5432"))
@@ -119,14 +128,44 @@ class Config:
     JIRA_PROJECT_KEY = os.getenv("JIRA_PROJECT_KEY", "SOC")
 
     @classmethod
+    def default_provider_config(cls) -> "ProviderConfig":
+        """Build a ProviderConfig from the configured DEFAULT_*_PROVIDER env vars.
+
+        Lazy imports avoid circular dependencies (registry imports Config).
+        The registry caches instances, so repeated calls are inexpensive.
+        """
+        from src.core.providers.base import ProviderConfig
+        from src.core.providers.registry import get_image_provider, get_text_provider
+
+        return ProviderConfig(
+            content=get_text_provider(cls.DEFAULT_CONTENT_PROVIDER),
+            hashtags=get_text_provider(cls.DEFAULT_HASHTAG_PROVIDER),
+            image_prompt=get_text_provider(cls.DEFAULT_IMAGE_PROMPT_PROVIDER),
+            image=get_image_provider(cls.DEFAULT_IMAGE_PROVIDER),
+        )
+
+    @classmethod
     def validate(cls) -> Dict[str, bool]:
-        """Validate required configuration"""
-        validations = {
-            "openai": bool(cls.OPENAI_API_KEY),
-            "google": bool(cls.GOOGLE_API_KEY),
+        """Validate required configuration.
+
+        Checks only the API keys needed by the configured default providers,
+        so users only need credentials for providers they actually use.
+        """
+        _provider_key_map = {
+            "openai": cls.OPENAI_API_KEY,
+            "anthropic": cls.ANTHROPIC_API_KEY,
+            "gemini": cls.GOOGLE_API_KEY,
+        }
+        text_providers = {
+            cls.DEFAULT_CONTENT_PROVIDER,
+            cls.DEFAULT_HASHTAG_PROVIDER,
+            cls.DEFAULT_IMAGE_PROMPT_PROVIDER,
+        }
+        return {
+            "text_providers": all(bool(_provider_key_map.get(p)) for p in text_providers),
+            "image_provider": bool(_provider_key_map.get(cls.DEFAULT_IMAGE_PROVIDER)),
             "database": bool(cls.DB_PASSWORD),
         }
-        return validations
 
     @classmethod
     def get_platform_spec(cls, platform: str) -> PlatformSpec:
