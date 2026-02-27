@@ -80,6 +80,10 @@ class Config:
     # Google Gemini
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
     GEMINI_TEXT_MODEL = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.0-flash")
+    GEMINI_IMAGE_MODEL = os.getenv("GEMINI_IMAGE_MODEL", "imagen-3.0-generate-001")
+
+    # OpenAI Image
+    OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "dall-e-3")
 
     # Database
     DB_HOST = os.getenv("DB_HOST", "localhost")
