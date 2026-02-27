@@ -190,6 +190,22 @@ class TestOpenAIImageProvider:
             provider.generate_image("prompt", 1200, 627)
             mock_get.assert_called_once_with(test_url, timeout=30)
 
+    def test_raises_on_http_error_from_download(self):
+        import requests as req
+
+        provider, mock_client = self._make_provider()
+        mock_client.images.generate.return_value = MagicMock(
+            data=[MagicMock(url="https://example.com/img.png")]
+        )
+
+        with patch("src.core.providers.openai_image.requests.get") as mock_get:
+            mock_response = MagicMock()
+            mock_response.raise_for_status.side_effect = req.HTTPError("404")
+            mock_get.return_value = mock_response
+
+            with pytest.raises(req.HTTPError):
+                provider.generate_image("prompt", 1200, 627)
+
     def test_custom_model_is_used(self):
         provider, mock_client = self._make_provider(model="dall-e-2")
         mock_client.images.generate.return_value = MagicMock(

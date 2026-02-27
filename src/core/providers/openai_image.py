@@ -78,7 +78,9 @@ class OpenAIImageProvider(ImageProvider):
             n=1,
         )
         url = response.data[0].url
-        return requests.get(url, timeout=30).content
+        image_response = requests.get(url, timeout=30)
+        image_response.raise_for_status()
+        return image_response.content
 
     def _derive_size(self, width: int, height: int) -> str:
         """Map arbitrary dimensions to the nearest DALL-E 3 supported size string."""
