@@ -549,6 +549,12 @@ Examples:
   python -m src.core.generator "Team update" \\
     --context "Focus on collaboration" \\
     --voice "friendly and professional"
+
+  # Override AI providers per element
+  python -m src.core.generator "Product launch" \\
+    --content-provider anthropic \\
+    --hashtag-provider gemini \\
+    --image-provider openai
         """,
     )
 
@@ -587,7 +593,50 @@ Examples:
         help="Disable hashtag generation",
     )
 
+    _TEXT_CHOICES = ["anthropic", "openai", "gemini"]
+    _IMAGE_CHOICES = ["gemini", "openai"]
+
+    parser.add_argument(
+        "--content-provider",
+        choices=_TEXT_CHOICES,
+        default=None,
+        help=f"Provider for post content (default: {Config.DEFAULT_CONTENT_PROVIDER})",
+    )
+
+    parser.add_argument(
+        "--hashtag-provider",
+        choices=_TEXT_CHOICES,
+        default=None,
+        help=f"Provider for hashtags (default: {Config.DEFAULT_HASHTAG_PROVIDER})",
+    )
+
+    parser.add_argument(
+        "--image-prompt-provider",
+        choices=_TEXT_CHOICES,
+        default=None,
+        help=f"Provider for image prompt (default: {Config.DEFAULT_IMAGE_PROMPT_PROVIDER})",
+    )
+
+    parser.add_argument(
+        "--image-provider",
+        choices=_IMAGE_CHOICES,
+        default=None,
+        help=f"Provider for image generation (default: {Config.DEFAULT_IMAGE_PROVIDER})",
+    )
+
     args = parser.parse_args()
+
+    # Resolve per-element providers (CLI arg overrides env-var default)
+    from src.core.providers.registry import get_image_provider, get_text_provider
+
+    provider_config = ProviderConfig(
+        content=get_text_provider(args.content_provider or Config.DEFAULT_CONTENT_PROVIDER),
+        hashtags=get_text_provider(args.hashtag_provider or Config.DEFAULT_HASHTAG_PROVIDER),
+        image_prompt=get_text_provider(
+            args.image_prompt_provider or Config.DEFAULT_IMAGE_PROMPT_PROVIDER
+        ),
+        image=get_image_provider(args.image_provider or Config.DEFAULT_IMAGE_PROVIDER),
+    )
 
     # Display header
     print("\n" + "=" * 70)
@@ -598,11 +647,18 @@ Examples:
     print(f"Context: {args.context}")
     print(f"Brand Voice: {args.voice or 'From brand guidelines'}")
     print(f"Hashtags: {'Disabled' if args.no_hashtags else 'Enabled'}")
+    print(f"Providers: content={args.content_provider or Config.DEFAULT_CONTENT_PROVIDER}", end="")
+    print(f", hashtags={args.hashtag_provider or Config.DEFAULT_HASHTAG_PROVIDER}", end="")
+    print(
+        f", image_prompt={args.image_prompt_provider or Config.DEFAULT_IMAGE_PROMPT_PROVIDER}",
+        end="",
+    )
+    print(f", image={args.image_provider or Config.DEFAULT_IMAGE_PROVIDER}")
     print("\n" + "-" * 70 + "\n")
 
     try:
         # Initialize generator
-        generator = SocialMediaGenerator()
+        generator = SocialMediaGenerator(provider_config=provider_config)
 
         # Generate posts
         if args.platform == "all":
