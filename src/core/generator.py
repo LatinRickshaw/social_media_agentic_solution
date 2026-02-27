@@ -129,7 +129,7 @@ def retry_with_exponential_backoff(
 class SocialMediaGenerator:
     """
     Core generator class that orchestrates content and image generation
-    using GPT-4 and Gemini respectively.
+    via the configured provider abstraction layer.
     """
 
     def __init__(
@@ -226,7 +226,7 @@ class SocialMediaGenerator:
         # 3. Extract/generate image description from content
         image_prompt = self._create_image_prompt(content, platform, user_prompt)
 
-        # 4. Generate image with Gemini
+        # 4. Generate image via configured image provider
         image_path = self._generate_image(image_prompt, platform)
 
         # 5. Package the result
@@ -274,7 +274,7 @@ class SocialMediaGenerator:
                     user_prompt, platform, context, brand_voice, include_hashtags
                 )
             except Exception as e:
-                print(f"Error generating {platform} post: {e}")
+                logger.error(f"Error generating {platform} post: {e}")
                 posts[platform] = None
 
         return posts
@@ -284,7 +284,7 @@ class SocialMediaGenerator:
         self, user_prompt: str, platform: str, context: str, brand_voice: str
     ) -> str:
         """
-        Generate platform-specific text content using GPT-4.
+        Generate platform-specific text content via the configured content provider.
         Includes retry logic with exponential backoff.
         """
         # Format the prompt from template
@@ -357,7 +357,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
     def _create_image_prompt(self, content: str, platform: str, original_prompt: str) -> str:
         """
         Create an image generation prompt based on the post content.
-        Uses GPT-4 to extract visual concepts.
+        Uses the configured image-prompt provider to extract visual concepts.
         """
         formatted_prompt = IMAGE_PROMPT_TEMPLATE.format(
             content=content, topic=original_prompt, platform=platform
@@ -378,7 +378,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
     @retry_with_exponential_backoff(max_retries=3, initial_delay=2.0)
     def _generate_image(self, image_prompt: str, platform: str) -> str:
         """
-        Generate image using Google Gemini Imagen 3 and save to disk.
+        Generate image via the configured image provider and save to disk.
         Returns path to saved image.
         """
         # Get platform-specific image dimensions
@@ -419,7 +419,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
             return image_path
 
         except Exception as e:
-            logger.error(f"Error generating image with Gemini: {e}")
+            logger.error(f"Error generating image: {e}")
 
             # Create a simple placeholder image instead of failing
             image_path = self._create_placeholder_image(platform, image_prompt)
@@ -468,7 +468,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
     @retry_with_exponential_backoff(max_retries=3, initial_delay=1.0)
     def _generate_hashtags(self, content: str, platform: str, topic: str) -> list:
         """
-        Generate relevant hashtags for the post using GPT-4.
+        Generate relevant hashtags for the post via the configured hashtag provider.
 
         Args:
             content: The generated post content
