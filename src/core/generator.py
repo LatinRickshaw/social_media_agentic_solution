@@ -1,6 +1,37 @@
 """
 Core generator class for social media content and image generation.
-Uses GPT-4 for content and Gemini for images.
+
+ARCHITECTURAL DECISION: ProviderConfig injection over hardcoded SDK clients
+
+Context: SOC-20 requires SocialMediaGenerator to delegate AI calls through
+the provider abstraction layer (SOC-16/17/18/19) instead of calling OpenAI
+and Google Gemini SDKs directly.
+
+Decision: Accept Optional[ProviderConfig] in __init__, defaulting to
+Config.default_provider_config() when not provided.
+
+Alternatives:
+1. Required ProviderConfig argument (not Optional):
+   - Pros: Explicit; callers cannot accidentally use wrong providers
+   - Cons: Breaks zero-arg SocialMediaGenerator() call in streamlit_app.py
+   - Rejected: Must maintain backward compatibility
+
+2. Class-level default provider config (classvar):
+   - Pros: Mutable at class level for testing
+   - Cons: Shared mutable state; harder to reason about
+   - Rejected: Instance-level injection is cleaner
+
+Rationale:
+- Optional param preserves backward compatibility for streamlit_app.py
+- Lazy default via Config.default_provider_config() defers API key validation
+  to first use, consistent with provider lazy-init pattern from SOC-19
+- Consistent with existing optional param pattern (brand_guidelines_path)
+
+Date: 2026-02-27
+Ticket: SOC-20
+Author: Claude Sonnet 4.6
+
+---
 
 ARCHITECTURAL DECISION: Migration from google-generativeai to google-genai
 
@@ -32,12 +63,12 @@ import time
 import logging
 from functools import wraps
 
-from openai import OpenAI
-from google import genai
 from PIL import Image
 import io
 
 from .config import Config, PLATFORM_SPECS
+from .providers import ProviderConfig
+from .providers.base import ImageProvider, TextProvider
 from .prompt_templates import PLATFORM_TEMPLATES, IMAGE_PROMPT_TEMPLATE
 from .brand_voice import BrandVoice
 
@@ -98,29 +129,45 @@ def retry_with_exponential_backoff(
 class SocialMediaGenerator:
     """
     Core generator class that orchestrates content and image generation
-    using GPT-4 and Gemini respectively.
+    via the configured provider abstraction layer.
     """
 
-    def __init__(self, brand_guidelines_path: Optional[str] = None):
+    def __init__(
+        self,
+        brand_guidelines_path: Optional[str] = None,
+        provider_config: Optional[ProviderConfig] = None,
+    ):
         """
-        Initialize the generator with API connections.
+        Initialize the generator.
 
         Args:
-            brand_guidelines_path: Optional path to brand guidelines YAML file
+            brand_guidelines_path: Optional path to brand guidelines YAML file.
+            provider_config: Provider instances to use for each generation task.
+                Defaults to Config.default_provider_config() when not provided,
+                which reads DEFAULT_*_PROVIDER env vars to select providers.
         """
-        # Validate configuration
-        if not Config.OPENAI_API_KEY:
-            raise ValueError("OPENAI_API_KEY not configured")
-        if not Config.GOOGLE_API_KEY:
-            raise ValueError("GOOGLE_API_KEY not configured")
+        # Use injected config or build from env-var defaults.
+        # Provider constructors validate API keys eagerly, so errors surface here.
+        self._provider_config = (
+            provider_config if provider_config is not None else Config.default_provider_config()
+        )
 
-        # Initialize OpenAI for content generation
-        self.openai_client = OpenAI(api_key=Config.OPENAI_API_KEY)
-        self.model = Config.OPENAI_MODEL
+        # Validate all four fields are set; store as typed attrs for mypy.
+        if self._provider_config.content is None:
+            raise ValueError("ProviderConfig.content must be set")
+        if self._provider_config.hashtags is None:
+            raise ValueError("ProviderConfig.hashtags must be set")
+        if self._provider_config.image_prompt is None:
+            raise ValueError("ProviderConfig.image_prompt must be set")
+        if self._provider_config.image is None:
+            raise ValueError("ProviderConfig.image must be set")
+        self._content_provider: TextProvider = self._provider_config.content
+        self._hashtag_provider: TextProvider = self._provider_config.hashtags
+        self._image_prompt_provider: TextProvider = self._provider_config.image_prompt
+        self._image_provider: ImageProvider = self._provider_config.image
+
+        # Sampling temperature for text generation tasks
         self.temperature = Config.OPENAI_TEMPERATURE
-
-        # Initialize Gemini client for image generation (new API)
-        self.genai_client: genai.Client = genai.Client(api_key=Config.GOOGLE_API_KEY)
 
         # Load platform specifications
         self.platform_specs = PLATFORM_SPECS
@@ -179,7 +226,7 @@ class SocialMediaGenerator:
         # 3. Extract/generate image description from content
         image_prompt = self._create_image_prompt(content, platform, user_prompt)
 
-        # 4. Generate image with Gemini
+        # 4. Generate image via configured image provider
         image_path = self._generate_image(image_prompt, platform)
 
         # 5. Package the result
@@ -227,7 +274,7 @@ class SocialMediaGenerator:
                     user_prompt, platform, context, brand_voice, include_hashtags
                 )
             except Exception as e:
-                print(f"Error generating {platform} post: {e}")
+                logger.error(f"Error generating {platform} post: {e}")
                 posts[platform] = None
 
         return posts
@@ -237,7 +284,7 @@ class SocialMediaGenerator:
         self, user_prompt: str, platform: str, context: str, brand_voice: str
     ) -> str:
         """
-        Generate platform-specific text content using GPT-4.
+        Generate platform-specific text content via the configured content provider.
         Includes retry logic with exponential backoff.
         """
         # Format the prompt from template
@@ -248,18 +295,12 @@ class SocialMediaGenerator:
 
         logger.info(f"Generating content for {platform}")
 
-        # Call OpenAI API
-        response = self.openai_client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are an expert social media content creator."},
-                {"role": "user", "content": formatted_prompt},
-            ],
-            temperature=self.temperature,
+        result = self._content_provider.generate_text(
+            system="You are an expert social media content creator.",
+            prompt=formatted_prompt,
             max_tokens=1000,
-        )
-
-        result = response.choices[0].message.content.strip()
+            temperature=self.temperature,
+        ).strip()
 
         # Validate and adjust character count
         char_limit = self.platform_specs[platform]["char_limit"]
@@ -298,17 +339,12 @@ Please rewrite this to be under {char_limit} characters while maintaining the ke
 tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
 """
 
-        response = self.openai_client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are an expert at concise social media writing."},
-                {"role": "user", "content": shorten_prompt},
-            ],
-            temperature=self.temperature,
+        result = self._content_provider.generate_text(
+            system="You are an expert at concise social media writing.",
+            prompt=shorten_prompt,
             max_tokens=500,
-        )
-
-        result = response.choices[0].message.content.strip()
+            temperature=self.temperature,
+        ).strip()
 
         # If still too long, truncate with ellipsis
         if len(result) > char_limit:
@@ -321,7 +357,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
     def _create_image_prompt(self, content: str, platform: str, original_prompt: str) -> str:
         """
         Create an image generation prompt based on the post content.
-        Uses GPT-4 to extract visual concepts.
+        Uses the configured image-prompt provider to extract visual concepts.
         """
         formatted_prompt = IMAGE_PROMPT_TEMPLATE.format(
             content=content, topic=original_prompt, platform=platform
@@ -329,20 +365,12 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
 
         logger.info(f"Creating image prompt for {platform}")
 
-        response = self.openai_client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an expert at creating visual image prompts.",
-                },
-                {"role": "user", "content": formatted_prompt},
-            ],
-            temperature=0.7,
+        image_prompt = self._image_prompt_provider.generate_text(
+            system="You are an expert at creating visual image prompts.",
+            prompt=formatted_prompt,
             max_tokens=300,
-        )
-
-        image_prompt = response.choices[0].message.content.strip()
+            temperature=0.7,
+        ).strip()
         logger.info(f"Image prompt created: {image_prompt[:100]}...")
 
         return image_prompt
@@ -350,7 +378,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
     @retry_with_exponential_backoff(max_retries=3, initial_delay=2.0)
     def _generate_image(self, image_prompt: str, platform: str) -> str:
         """
-        Generate image using Google Gemini Imagen 3 and save to disk.
+        Generate image via the configured image provider and save to disk.
         Returns path to saved image.
         """
         # Get platform-specific image dimensions
@@ -359,9 +387,6 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
         logger.info(f"Generating image for {platform} ({width}x{height})")
 
         try:
-            # Generate image using Gemini's imagen-3.0-generate-001 model via new client API
-            # Note: As of 2026, using google-genai SDK with client-based approach
-
             # Enhance prompt with size requirements
             enhanced_prompt = (
                 f"{image_prompt}\n\n"
@@ -369,12 +394,11 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
                 f"high quality, professional, suitable for {platform} social media."
             )
 
-            response = self.genai_client.models.generate_content(
-                model="imagen-3.0-generate-001",
-                contents=enhanced_prompt,
-                config=genai.types.GenerateContentConfig(
-                    temperature=0.4,  # Lower temperature for more consistent images
-                ),
+            # Delegate to the configured image provider — returns raw PNG bytes
+            image_data = self._image_provider.generate_image(
+                prompt=enhanced_prompt,
+                width=width,
+                height=height,
             )
 
             # Create output directory
@@ -385,34 +409,17 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             image_path = os.path.join(output_dir, f"{platform}_{timestamp}.png")
 
-            # Extract and save image
-            if hasattr(response, "parts") and len(response.parts) > 0:
-                # Get image data from response
-                image_part = response.parts[0]
-
-                if hasattr(image_part, "inline_data"):
-                    # Save the image bytes
-                    image_data = image_part.inline_data.data
-
-                    # Load with PIL to resize if needed
-                    img = Image.open(io.BytesIO(image_data))
-
-                    # Resize to exact platform dimensions
-                    if img.size != (width, height):
-                        img = img.resize((width, height), Image.Resampling.LANCZOS)
-
-                    # Save as PNG
-                    img.save(image_path, "PNG", quality=95)
-                    logger.info(f"Image saved to {image_path}")
-                else:
-                    raise ValueError("No image data in response")
-            else:
-                raise ValueError("Invalid response format from Imagen")
+            # Load with PIL to resize if needed, then save
+            img = Image.open(io.BytesIO(image_data))
+            if img.size != (width, height):
+                img = img.resize((width, height), Image.Resampling.LANCZOS)
+            img.save(image_path, "PNG", quality=95)
+            logger.info(f"Image saved to {image_path}")
 
             return image_path
 
         except Exception as e:
-            logger.error(f"Error generating image with Gemini: {e}")
+            logger.error(f"Error generating image: {e}")
 
             # Create a simple placeholder image instead of failing
             image_path = self._create_placeholder_image(platform, image_prompt)
@@ -461,7 +468,7 @@ tone ({brand_voice}), and call-to-action. Keep it engaging and complete.
     @retry_with_exponential_backoff(max_retries=3, initial_delay=1.0)
     def _generate_hashtags(self, content: str, platform: str, topic: str) -> list:
         """
-        Generate relevant hashtags for the post using GPT-4.
+        Generate relevant hashtags for the post via the configured hashtag provider.
 
         Args:
             content: The generated post content
@@ -503,20 +510,12 @@ Example format: Innovation, TechTrends, BusinessGrowth
 
         logger.info(f"Generating {max_hashtags} hashtags for {platform}")
 
-        response = self.openai_client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an expert at social media hashtag strategy.",
-                },
-                {"role": "user", "content": hashtag_prompt},
-            ],
-            temperature=0.7,
+        result = self._hashtag_provider.generate_text(
+            system="You are an expert at social media hashtag strategy.",
+            prompt=hashtag_prompt,
             max_tokens=150,
-        )
-
-        result = response.choices[0].message.content.strip()
+            temperature=0.7,
+        ).strip()
 
         # Parse the comma-separated hashtags
         hashtags = [tag.strip().replace("#", "") for tag in result.split(",")]
