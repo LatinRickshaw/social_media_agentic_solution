@@ -248,3 +248,12 @@ See the investigation report format above. A real example would include:
 - Concrete technology recommendations
 - Detailed pros/cons for each decision
 - Risk assessment with mitigation strategies
+
+
+---
+
+## ⛔ Stop Here
+
+This skill is now complete. **Do NOT invoke the next skill automatically.**
+
+State what the recommended next step is for the user's reference, then stop and wait for the user to explicitly trigger it.

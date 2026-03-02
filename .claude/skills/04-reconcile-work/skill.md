@@ -435,3 +435,12 @@ git checkout feature-b
 
 # Identify estimation patterns
 ```
+
+
+---
+
+## ⛔ Stop Here
+
+This skill is now complete. **Do NOT invoke the next skill automatically.**
+
+State what the recommended next step is for the user's reference, then stop and wait for the user to explicitly trigger it.

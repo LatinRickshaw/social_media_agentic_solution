@@ -55,7 +55,7 @@ Generates detailed review with categorized recommendations.
 ### Phase 4: Approval & Finalization
 
 1. Adds summary comment to PR with completion status using GitHub MCP
-2. Approves PR (if all recommendations implemented) using GitHub MCP
+2. Approves PR using GitHub MCP — **Note**: GitHub prevents self-approval. If the repository has no external reviewer configured, skip the formal approval and ensure the summary comment (step 1) clearly states the PR is ✅ ready for merge. Do NOT attempt a formal approval that will fail.
 3. **Does NOT merge** - merging happens in `/07-complete-task`
 4. Reports PR is ready for final review and merge
 
@@ -440,11 +440,11 @@ PR is ready for merge.
 - Ensure working directory is clean
 - Verify pre-commit hooks pass
 
-### Cannot Approve PR
+### Cannot Approve PR (solo repo — expected behaviour)
 
-- Check user has approval permissions
-- Verify not author of PR (can't self-approve in some repos)
-- Ensure PR is not in draft state
+- GitHub blocks self-approval; this is expected in solo repos
+- This is NOT an error — post a clear ✅ ready-for-merge summary comment instead
+- Ensure PR is not in draft state (genuine blocker)
 
 ## Success Criteria
 
@@ -457,8 +457,8 @@ A successful PR review completion includes:
 ✅ Documentation updated
 ✅ Test coverage adequate
 ✅ Clean commit history
-✅ PR summary comment added
-✅ PR approved (if all checks pass)
+✅ PR summary comment added confirming readiness for merge
+✅ PR approved via formal GitHub approval OR (for solo repos) via clear ✅ summary comment
 ✅ Ready for merge in `/07-complete-task`
 
 ## Notes
@@ -491,3 +491,12 @@ A successful PR review completion includes:
 ---
 
 **Built to ensure high-quality PRs with comprehensive automated review and improvement**
+
+
+---
+
+## ⛔ Stop Here
+
+This skill is now complete. **Do NOT invoke the next skill automatically.**
+
+State what the recommended next step is for the user's reference, then stop and wait for the user to explicitly trigger it.

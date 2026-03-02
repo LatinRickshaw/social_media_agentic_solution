@@ -26,7 +26,9 @@ Once complete, it executes the command `say finished creating the pull request f
 
 - Runs `git status` to see what files changed
 - Runs `git diff` to review the actual changes
-- Verifies there are changes to commit
+- **Determines commit state**:
+  - If the working tree is clean AND commits exist ahead of `origin/main` → changes are already committed (common when `/03-dev-execute` has run). **Skip step 3 (Git Commit) and proceed directly to step 4 (Git Push).**
+  - If unstaged or staged changes exist → commit as described in step 3.
 
 ### 2. Jira Update
 
@@ -226,7 +228,7 @@ After this skill completes:
 ## Notes
 
 - Always review changes with `git status` and `git diff` before running
-- The skill adds a co-authored-by line for Claude in commits
+- Do NOT add co-authored-by or any Claude attribution to commit messages
 - Jira comments include comprehensive completion details for traceability
 - Scope changes are highlighted with clear rationales
 - The commit message includes a link back to the Jira ticket
@@ -271,3 +273,12 @@ This ensures proper separation of:
 ```
 
 This follows standard SDLC where tickets are only marked "Done" **after** the PR is merged, not before.
+
+
+---
+
+## ⛔ Stop Here
+
+This skill is now complete. **Do NOT invoke the next skill automatically.**
+
+State what the recommended next step is for the user's reference, then stop and wait for the user to explicitly trigger it.

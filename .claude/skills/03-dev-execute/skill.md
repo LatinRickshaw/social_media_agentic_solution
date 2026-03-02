@@ -764,3 +764,12 @@ This ensures disciplined development from start to finish with proper code revie
 - **Most importantly**: Think before you code
 
 Good software is **designed**, not just **written**.
+
+
+---
+
+## ⛔ Stop Here
+
+This skill is now complete. **Do NOT invoke the next skill automatically.**
+
+State what the recommended next step is for the user's reference, then stop and wait for the user to explicitly trigger it.

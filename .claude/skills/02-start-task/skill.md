@@ -242,3 +242,12 @@ This ensures clean separation between setup, investigation (optional), implement
 # Then proceed with implementation
 /03-dev-execute SOC-14
 ```
+
+
+---
+
+## ⛔ Stop Here
+
+This skill is now complete. **Do NOT invoke the next skill automatically.**
+
+State what the recommended next step is for the user's reference, then stop and wait for the user to explicitly trigger it.

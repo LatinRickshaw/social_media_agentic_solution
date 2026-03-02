@@ -28,7 +28,7 @@ Once complete, it executes the command `say finished completing the task {SOC-XX
 ### 1. PR Verification
 
 - Fetches PR details using GitHub MCP
-- Verifies PR is approved by required reviewers
+- Verifies PR is approved by required reviewers, OR confirms a ✅ ready-for-merge review summary comment was posted by `/06-pr-review` (covers solo repos where self-approval is blocked by GitHub)
 - Checks that all status checks pass
 - Confirms no merge conflicts exist
 - Validates PR is in mergeable state
@@ -112,7 +112,7 @@ The skill uses the repository's configured merge strategy:
 
 The skill verifies these conditions before merging:
 
-1. ✅ PR is approved by required number of reviewers
+1. ✅ PR is approved by required reviewers, OR a ✅ ready-for-merge comment was posted by `/06-pr-review` (soft check — not a hard blocker for solo repos)
 2. ✅ All required status checks pass (CI/CD, tests, linting)
 3. ✅ No merge conflicts with base branch
 4. ✅ PR is not in draft state
@@ -421,3 +421,12 @@ Action required:
 ```
 
 **Key improvement**: Ticket only marked "Done" AFTER the PR is merged, following standard SDLC practices.
+
+
+---
+
+## ⛔ Stop Here
+
+This skill is now complete. **Do NOT invoke the next skill automatically.**
+
+State what the recommended next step is for the user's reference, then stop and wait for the user to explicitly trigger it.
