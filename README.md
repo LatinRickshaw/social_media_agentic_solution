@@ -50,6 +50,9 @@ social-media-generator/
 │   │   └── prompt_templates.py
 │   ├── data/              # Database interface
 │   │   └── database.py
+│   ├── api/               # REST API (FastAPI)
+│   │   ├── app.py         # FastAPI app with /health, /providers, /generate
+│   │   └── models.py      # Pydantic request/response models
 │   ├── quality/           # Quality checking (planned)
 │   ├── automation/        # Auto-publish logic (planned)
 │   ├── publishing/        # Platform publishers (planned)
@@ -117,6 +120,13 @@ pytest tests/ -v
 7. **Start the UI**
 ```bash
 streamlit run src/ui/streamlit_app.py
+```
+
+8. **Start the REST API** (optional)
+```bash
+uvicorn src.api.app:app --reload
+# API available at http://localhost:8000
+# Docs at http://localhost:8000/docs
 ```
 
 ## Docker
