@@ -28,6 +28,10 @@ Guides the development of software features following engineering best practices
 
 This skill guides you through disciplined software development by completing the following phases. Once complete, it executes the command `say finished executing the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.:
 
+## What It Does Not
+
+When writing a commit message, it, in no way, provides any atrribution to Anthropic or Claude Code in the commit message, PR description, or Jira comments. This is a personal commit by the user.
+
 ### Phase 0: Fetch Task Context (BEFORE any planning)
 
 **0.1 Retrieve Jira Ticket**
@@ -764,7 +768,6 @@ This ensures disciplined development from start to finish with proper code revie
 - **Most importantly**: Think before you code
 
 Good software is **designed**, not just **written**.
-
 
 ---
 

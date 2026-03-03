@@ -22,6 +22,10 @@ Commits your changes and creates a pull request for code review. This skill prep
 
 Once complete, it executes the command `say finished creating the pull request for the task {SOC-XX}`, ensure to replace {SOC-XX} with the actual Jira key.
 
+## What It Does Not
+
+When creating the PR, it, in no way, provides any atrribution to Anthropic or Claude Code in the commit message, PR description, or Jira comments. This is a personal commit by the user.
+
 ### 1. Git Status Check
 
 - Runs `git status` to see what files changed
@@ -273,7 +277,6 @@ This ensures proper separation of:
 ```
 
 This follows standard SDLC where tickets are only marked "Done" **after** the PR is merged, not before.
-
 
 ---
 
