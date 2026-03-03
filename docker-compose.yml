@@ -22,6 +22,13 @@ services:
     entrypoint: ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
     volumes:
       - generated_images:/app/generated_images
+    # Override the Dockerfile HEALTHCHECK (checks :8501 for Streamlit) so that
+    # docker compose ps reports the api container as healthy against its own endpoint.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
       db:
         condition: service_healthy

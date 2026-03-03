@@ -151,7 +151,10 @@ This automatically loads `docker-compose.override.yml`, which:
 - Exposes PostgreSQL on port 5432 for direct access
 - Sets `DEBUG=true`
 
-The app is available at **http://localhost** (Nginx reverse proxy on port 80).
+Both services are available via **http://localhost** (Nginx reverse proxy on port 80):
+- **Streamlit UI**: http://localhost/
+- **REST API**: http://localhost/api/ (e.g. `GET /api/health`, `POST /api/generate`)
+- **API docs**: http://localhost/api/docs
 
 ### Production / Cloud
 
